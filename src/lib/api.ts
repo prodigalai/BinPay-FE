@@ -1,7 +1,12 @@
 const API_BASE = "https://139.59.83.23/api/v1";
-const API_URL =
+const rawUrl =
   import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? "http://localhost:5000/api/v1" : API_BASE);
+// Force HTTPS for 139.59.83.23 (no :5000) so old env/cache never uses http
+const API_URL =
+  rawUrl.includes("139.59.83.23") && (rawUrl.startsWith("http://") || rawUrl.includes(":5000"))
+    ? API_BASE
+    : rawUrl;
 
 export interface AuthUser {
   id: string;

@@ -1,7 +1,7 @@
-// Use same-origin /api/v1 in production (Vercel proxies to backend) to avoid mixed-content block (HTTPS page → HTTP API)
+const API_BASE = "https://139.59.83.23/api/v1";
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? "http://localhost:5000/api/v1" : "/api/v1");
+  (import.meta.env.DEV ? "http://localhost:5000/api/v1" : API_BASE);
 
 export interface AuthUser {
   id: string;

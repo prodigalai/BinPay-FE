@@ -1,7 +1,5 @@
 const API_BASE = "https://api.goat0p.com/api/v1";
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? "http://localhost:5000/api/v1" : API_BASE);
+const API_URL = "https://api.goat0p.com/api/v1"
 
 export interface AuthUser {
   id: string;

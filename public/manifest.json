@@ -1,0 +1,25 @@
+{
+  "name": "Binpay Admin Dashboard",
+  "short_name": "Binpay Admin",
+  "description": "Premium fintech admin dashboard for casino management",
+  "theme_color": "#7c3aed",
+  "background_color": "#0a0612",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

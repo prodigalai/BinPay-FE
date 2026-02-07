@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 270 30% 3%;   /* #06010c */
+    --foreground: 220 10% 98%;
+
+    --card: 270 28% 6%;        /* #0d0618 */
+    --card-foreground: 220 10% 98%;
+
+    --popover: 270 28% 6%;
+    --popover-foreground: 220 10% 98%;
+
+    /* DARK PURPLE PRIMARY */
+    --primary: 270 85% 60%;   /* #9333ea */
+    --primary-foreground: 0 0% 100%;
+
+    /* DEEP VIOLET SECONDARY */
+    --secondary: 265 85% 65%; /* #a855f7 */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 270 20% 12%;
+    --muted-foreground: 220 10% 65%;
+
+    /* Pink ONLY for accents */
+    --accent: 330 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --warning: 38 92% 50%;
+
+    --border: 270 25% 14%;
+    --input: 270 25% 14%;
+    --ring: 270 85% 60%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* CLEAN PURPLE CARDS */
+  .glass {
+    background: #0d0618;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 16px;
+  }
+
+  /* Stronger bg for dropdowns/modals */
+  .glass-strong {
+    background: #11081f;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 16px;
+  }
+
+  /* No Text Glow - Clean White Numbers */
+  .neon-text-glow {
+    text-shadow: none;
+    color: white;
+  }
+
+  /* Clean Chart Card */
+  .premium-chart-card {
+    background: #0d0618;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 16px;
+  }
+
+  /* BUTTONS - Purple Gradient */
+  .neon-button {
+    @apply relative overflow-hidden text-white font-semibold rounded-lg;
+    background: linear-gradient(135deg, #7e22ce, #a855f7);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .neon-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+  }
+
+  .neon-button:active {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  
+  /* Accent Button (Purple/Pink) */
+  .neon-button-accent {
+    @apply relative overflow-hidden text-white font-semibold rounded-lg;
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .neon-button-accent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.35);
+  }
+
+  /* Minimal Purple Borders */
+  .gradient-border {
+    position: relative;
+    background: #0d0618;
+    border-radius: 16px;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+  }
+  
+  /* Status pills */
+  .status-pill {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border;
+  }
+  
+  .status-pending {
+    @apply bg-purple-500/10 text-purple-400 border-purple-500/20;
+  }
+
+  .status-verified {
+    @apply bg-emerald-500/10 text-emerald-500 border-emerald-500/20;
+  }
+
+  .status-blocked {
+    @apply bg-red-500/10 text-red-400 border-red-500/20;
+  }
+
+  /* Chart grid */
+  .chart-grid {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Fade Animation */
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://139.59.83.23/api/v1/:path*"
+      "destination": "https://api.goat0p.com/api/v1/:path*"
     }
   ]
 }

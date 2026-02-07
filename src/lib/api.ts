@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://139.59.83.23:5000/api/v1";
+// Use same-origin /api/v1 in production (Vercel proxies to backend) to avoid mixed-content block (HTTPS page → HTTP API)
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:5000/api/v1" : "/api/v1");
 
 export interface AuthUser {
   id: string;

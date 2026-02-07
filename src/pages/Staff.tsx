@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Plus, User } from "lucide-react";
+import { Plus, User, Trash2, Edit2, MoreVertical } from "lucide-react";
 import { cn } from "../lib/utils";
 import { AddStaffModal } from "../components/modals/AddStaffModal";
+import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
 import type { StaffFormData } from "../components/modals/AddStaffModal";
 import { api } from "../lib/api";
 import type { StaffMember, StaffListResponse } from "../lib/api";
@@ -27,6 +28,10 @@ export default function Staff() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  const [deletingStaff, setDeletingStaff] = useState<StaffMember | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchStaff = async () => {
     setLoading(true);
@@ -49,14 +54,59 @@ export default function Staff() {
 
   const handleAddStaff = async (data: StaffFormData) => {
     try {
-      await api.post("admin/staff", { name: data.fullName, email: data.email, password: data.password, role: data.role });
-      toast({ title: "Success", description: "Staff member added." });
+      if (editingStaff && editingStaff._id) {
+        // Edit mode
+        await api.put(`admin/staff/${editingStaff._id}`, { 
+          name: data.fullName, 
+          email: data.email, 
+          role: data.role,
+          ...(data.password ? { password: data.password } : {}) 
+        });
+        toast({ title: "Success", description: "Staff member updated." });
+      } else {
+        // Add mode
+        await api.post("admin/staff", { name: data.fullName, email: data.email, password: data.password, role: data.role });
+        toast({ title: "Success", description: "Staff member added." });
+      }
+      setEditingStaff(null);
       await fetchStaff();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to add staff";
+      const msg = e instanceof Error ? e.message : "Operation failed";
       toast({ title: "Error", description: msg, variant: "destructive" });
       throw e;
     }
+  };
+
+  const initEdit = (member: StaffMember) => {
+    setEditingStaff(member);
+    setIsModalOpen(true);
+  };
+
+  const initDelete = (member: StaffMember) => {
+    setDeletingStaff(member);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingStaff?._id) return;
+    setActionLoading(true);
+    try {
+      await api.delete(`admin/staff/${deletingStaff._id}`);
+      toast({ title: "Success", description: "Staff member removed." });
+      setIsDeleteModalOpen(false);
+      setDeletingStaff(null);
+      fetchStaff();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to remove staff";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setEditingStaff(null), 300); // clear after animation
   };
 
   return (
@@ -69,7 +119,7 @@ export default function Staff() {
             <h2 className="text-lg font-semibold">Staff Members</h2>
             <p className="text-muted-foreground text-sm">Manage team and roles.</p>
           </div>
-          <button type="button" onClick={() => setIsModalOpen(true)} className="neon-button-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold">
+          <button type="button" onClick={() => { setEditingStaff(null); setIsModalOpen(true); }} className="neon-button-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold">
             <Plus className="w-4 h-4" /> Add Staff
           </button>
         </div>
@@ -84,12 +134,13 @@ export default function Staff() {
                   <th className="text-left py-3 px-2 text-xs font-medium text-muted-foreground uppercase">Member</th>
                   <th className="text-left py-3 px-2 text-xs font-medium text-muted-foreground uppercase">Role</th>
                   <th className="text-left py-3 px-2 text-xs font-medium text-muted-foreground uppercase">Created</th>
+                  <th className="text-right py-3 px-2 text-xs font-medium text-muted-foreground uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {staff.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="py-8 text-center text-muted-foreground text-sm">No staff yet. Add one.</td>
+                    <td colSpan={4} className="py-8 text-center text-muted-foreground text-sm">No staff yet. Add one.</td>
                   </tr>
                 ) : (
                   staff.map((m) => (
@@ -111,6 +162,24 @@ export default function Staff() {
                         </span>
                       </td>
                       <td className="py-4 px-2 text-sm text-muted-foreground">{formatDate(m.createdAt)}</td>
+                      <td className="py-4 px-2 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => initEdit(m)}
+                            className="p-2 text-muted-foreground hover:text-primary hover:bg-white/5 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => initDelete(m)}
+                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -120,7 +189,23 @@ export default function Staff() {
         )}
       </div>
 
-      <AddStaffModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleAddStaff} />
+      <AddStaffModal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        onSubmit={handleAddStaff} 
+        initialData={editingStaff}
+      />
+      
+      <ConfirmActionModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Staff Member"
+        description={`Are you sure you want to remove ${deletingStaff?.name}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        isDestructive={true}
+        isLoading={actionLoading}
+      />
     </div>
   );
 }

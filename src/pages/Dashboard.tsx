@@ -4,6 +4,9 @@ import { StatCard } from "../components/ui/stat-card";
 import { PerformanceChart } from "../components/charts/PerformanceChart";
 import { api } from "../lib/api";
 import { toast } from "../hooks/use-toast";
+import { useAuth } from "../contexts/AuthContext";
+import { CreateDepositModal } from "../components/modals/CreateDepositModal";
+import { Plus } from "lucide-react";
 
 const stats = [
   {
@@ -48,6 +51,9 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("2026-01-02");
   const [endDate, setEndDate] = useState("2026-02-07");
   const [balance, setBalance] = useState<number | null>(null);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const { user } = useAuth();
+  const isPlayer = user?.role === "PLAYER";
 
   useEffect(() => {
     api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => {});
@@ -66,81 +72,80 @@ export default function Dashboard() {
       </div>
 
       {/* Deposits Link Card */}
-      <div className="glass rounded-lg p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <Download className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Deposits</h2>
-            <p className="text-sm text-muted-foreground">Copy link for customers</p>
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 mt-4">
-          <div className="flex-1 bg-card/60 border border-white/10 rounded-lg px-4 py-3 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Wallet balance</span>
-            <span className="font-semibold text-primary">{balance !== null ? `$${balance.toFixed(2)}` : "—"}</span>
-          </div>
-          <button 
-            onClick={handleCopyLink}
-            className="neon-button-accent inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold"
-          >
-            <Copy className="w-4 h-4" />
-            Copy
-          </button>
-        </div>
-      </div>
-
-      {/* Overall Statistics Card */}
-      <div className="glass rounded-lg p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <h2 className="text-lg font-semibold">Overall Statistics</h2>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Start Date:</span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 bg-card/60 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
+      <div className="glass rounded-lg p-4 sm:p-6 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] -z-10 group-hover:bg-primary/20 transition-colors" />
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+              <Download className="w-6 h-6 text-white" />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">End Date:</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 bg-card/60 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
+            <div>
+              <h2 className="text-xl font-bold">Quick Deposit</h2>
+              <p className="text-sm text-muted-foreground">Add funds to your wallet balance instantly</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Timezone:</span>
-              <select className="px-3 py-2 bg-card/60 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                <option>Local Timezone</option>
-                <option>UTC</option>
-              </select>
+          </div>
+          
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 min-w-[140px]">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Available Balance</p>
+              <p className="text-lg font-bold text-primary">{balance !== null ? `$${balance.toFixed(2)}` : "—"}</p>
             </div>
-            <button className="neon-button px-5 py-2 text-sm font-semibold">
-              Get Statistics
+            <button 
+              onClick={() => setIsDepositModalOpen(true)}
+              className="neon-button-accent inline-flex items-center justify-center gap-2 px-6 h-12 text-sm font-bold shadow-xl shadow-accent/20 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+            >
+              <Plus className="w-5 h-5" />
+              Deposit Now
             </button>
           </div>
         </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {overallStatsData.map((stat) => (
-            <div key={stat.label} className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-              <p className="text-xl sm:text-2xl font-bold text-white mb-1 tracking-tight">{stat.value}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest font-medium opacity-60">{stat.label}</p>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Admin Stats Header - Only show for non-players */}
+      {!isPlayer && (
+        <div className="glass rounded-lg p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            <h2 className="text-lg font-semibold">Overall Statistics</h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Start Date:</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 bg-card/60 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">End Date:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 bg-card/60 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <button className="neon-button px-5 py-2 text-sm font-semibold">
+                Get Statistics
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {overallStatsData.map((stat) => (
+              <div key={stat.label} className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                <p className="text-xl sm:text-2xl font-bold text-white mb-1 tracking-tight">{stat.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest font-medium opacity-60">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Main Stats Grid - Show simplified for players or full for admin */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {stats.map((stat) => (
+        {(!isPlayer ? stats : stats.slice(0, 2)).map((stat) => (
           (stat as any).changeType ? (
             <StatCard key={stat.title} {...stat} />
           ) : null
@@ -184,6 +189,15 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      <CreateDepositModal 
+        isOpen={isDepositModalOpen} 
+        onClose={() => setIsDepositModalOpen(false)} 
+        onSuccess={() => {
+          // Refresh balance
+          api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => {});
+        }}
+      />
     </div>
   );
 }

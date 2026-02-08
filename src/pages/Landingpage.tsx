@@ -193,7 +193,7 @@ export default function Landing() {
       )}
 
       {/* Hero Section */}
-      <section className="relative z-10  lg:px-12 pt-32 lg:pt-32 pb-20">
+      <section className="relative z-10 px-6 lg:px-12 pt-32 lg:pt-32 pb-20">
         <div className="max-w-7xl w-full mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Card Visual */}

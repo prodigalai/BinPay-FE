@@ -6,41 +6,59 @@
 
 @layer base {
   :root {
-    --background: 270 30% 3%;   /* #06010c */
-    --foreground: 220 10% 98%;
+    --background: 155 40% 2%;  /* #030704 */
+    --foreground: 155 20% 95%;
 
-    --card: 270 28% 6%;        /* #0d0618 */
-    --card-foreground: 220 10% 98%;
+    --card: 155 30% 4%;    /* #070d09 */
+    --card-foreground: 155 20% 95%;
 
-    --popover: 270 28% 6%;
-    --popover-foreground: 220 10% 98%;
+    --popover: 155 30% 4%;
+    --popover-foreground: 155 20% 95%;
 
-    /* DARK PURPLE PRIMARY */
-    --primary: 270 85% 60%;   /* #9333ea */
-    --primary-foreground: 0 0% 100%;
+    /* VIBRANT GAMING GREEN */
+    --primary: 142 70% 50%;    /* #26d760 */
+    --primary-foreground: 145 80% 5%;
 
-    /* DEEP VIOLET SECONDARY */
-    --secondary: 265 85% 65%; /* #a855f7 */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 155 30% 8%;
+    --secondary-foreground: 142 70% 50%;
 
-    --muted: 270 20% 12%;
-    --muted-foreground: 220 10% 65%;
+    --muted: 155 30% 10%;
+    --muted-foreground: 155 20% 60%;
 
-    /* Pink ONLY for accents */
-    --accent: 330 80% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 142 70% 50%;
+    --accent-foreground: 145 80% 5%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 70% 45%;
-    --warning: 38 92% 50%;
+    --success: 142 70% 50%;
+    --success-foreground: 145 80% 5%;
 
-    --border: 270 25% 14%;
-    --input: 270 25% 14%;
-    --ring: 270 85% 60%;
+    --warning: 48 90% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --border: 155 30% 10%;
+    --input: 155 30% 10%;
+    --ring: 142 70% 50%;
 
     --radius: 0.5rem;
+
+    /* Custom design tokens */
+    --glass-bg: 155 30% 4% / 0.8;
+    --glass-border: 142 70% 50% / 0.2;
+    --glow-primary: 142 70% 50%;
+    --glow-accent: 142 70% 50%;
+    --gradient-start: 142 70% 20%;
+    --gradient-end: 142 70% 50%;
+
+    --sidebar-background: 155 35% 3%;
+    --sidebar-foreground: 155 20% 90%;
+    --sidebar-primary: 142 70% 50%;
+    --sidebar-primary-foreground: 145 80% 5%;
+    --sidebar-accent: 155 30% 10%;
+    --sidebar-accent-foreground: 142 70% 50%;
+    --sidebar-border: 155 30% 10%;
+    --sidebar-ring: 142 70% 50%;
   }
 }
 
@@ -56,18 +74,13 @@
 }
 
 @layer utilities {
-  /* CLEAN PURPLE CARDS */
+  /* Glass morphism */
   .glass {
-    background: #0d0618;
-    border: 1px solid rgba(168, 85, 247, 0.15);
-    border-radius: 16px;
+    @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-2xl;
   }
 
-  /* Stronger bg for dropdowns/modals */
   .glass-strong {
-    background: #11081f;
-    border: 1px solid rgba(168, 85, 247, 0.2);
-    border-radius: 16px;
+    @apply bg-card/80 backdrop-blur-2xl border border-white/10 shadow-2xl;
   }
 
   /* No Text Glow - Clean White Numbers */
@@ -78,22 +91,20 @@
 
   /* Clean Chart Card */
   .premium-chart-card {
-    background: #0d0618;
-    border: 1px solid rgba(168, 85, 247, 0.15);
-    border-radius: 16px;
+    @apply bg-card border border-primary/10 rounded-2xl;
   }
 
-  /* BUTTONS - Purple Gradient */
+  /* BUTTONS - Green Gradient */
   .neon-button {
-    @apply relative overflow-hidden text-white font-semibold rounded-lg;
-    background: linear-gradient(135deg, #7e22ce, #a855f7);
-    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+    @apply relative overflow-hidden text-primary-foreground font-semibold rounded-lg;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.25);
     transition: all 0.2s ease;
   }
 
   .neon-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+    box-shadow: 0 6px 16px hsl(var(--primary) / 0.35);
   }
 
   .neon-button:active {
@@ -101,25 +112,23 @@
     opacity: 0.9;
   }
   
-  /* Accent Button (Purple/Pink) */
+  /* Accent Button */
   .neon-button-accent {
-    @apply relative overflow-hidden text-white font-semibold rounded-lg;
-    background: linear-gradient(135deg, #a855f7, #ec4899);
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+    @apply relative overflow-hidden text-primary-foreground font-semibold rounded-lg;
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
+    box-shadow: 0 4px 12px hsl(var(--accent) / 0.25);
     transition: all 0.2s ease;
   }
 
   .neon-button-accent:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.35);
+    box-shadow: 0 6px 16px hsl(var(--accent) / 0.35);
   }
 
-  /* Minimal Purple Borders */
+  /* Minimal Green Borders */
   .gradient-border {
     position: relative;
-    background: #0d0618;
-    border-radius: 16px;
-    border: 1px solid rgba(168, 85, 247, 0.15);
+    @apply bg-card rounded-2xl border border-primary/15;
   }
   
   /* Status pills */
@@ -128,28 +137,37 @@
   }
   
   .status-pending {
-    @apply bg-purple-500/10 text-purple-400 border-purple-500/20;
+    @apply bg-primary/10 text-primary border-primary/20;
   }
 
   .status-verified {
-    @apply bg-emerald-500/10 text-emerald-500 border-emerald-500/20;
+    @apply bg-success/10 text-success border-success/20;
   }
 
   .status-blocked {
-    @apply bg-red-500/10 text-red-400 border-red-500/20;
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+
+  .status-admin {
+    @apply bg-accent/10 text-accent border-accent/20;
   }
 
   /* Chart grid */
   .chart-grid {
     background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(to right, hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.3) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   /* Fade Animation */
   .animate-fade-in {
     animation: fadeIn 0.4s ease-out forwards;
+  }
+  
+  /* Glow effects helper classes */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
   }
 }
 

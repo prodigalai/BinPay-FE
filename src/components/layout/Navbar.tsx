@@ -16,7 +16,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { LogoutConfirmModal } from "../modals/LogoutConfirmModal";
 
 const navItems = [
-  { name: "Dashboard", path: "/", icon: LayoutDashboard },
+  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "Players", path: "/players", icon: Users, roles: ["ADMIN", "STAFF"] },
   { name: "Deposits", path: "/deposits", icon: Wallet },
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN"] },

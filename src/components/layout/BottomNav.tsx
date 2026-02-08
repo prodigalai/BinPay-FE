@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils";
 import { useAuth } from "../../contexts/AuthContext";
 
 const navItems = [
-  { name: "Home", path: "/", icon: LayoutDashboard },
+  { name: "Home", path: "/dashboard", icon: LayoutDashboard },
   { name: "Players", path: "/players", icon: Users, roles: ["ADMIN", "STAFF"] },
   { name: "Deposits", path: "/deposits", icon: Wallet },
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN"] },

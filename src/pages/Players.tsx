@@ -58,48 +58,50 @@ export default function Players() {
         </select>
       </div>
 
-      <div className="glass rounded-lg overflow-hidden">
-        <table className="w-full min-w-[500px]">
-          <thead>
-            <tr className="border-b border-white/10">
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Player</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Email</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Status</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Total deposits</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Loading…</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No players found.</td></tr>
-            ) : (
-              filtered.map((p) => (
-                <tr key={p.id ?? p._id ?? p.email} className="border-b border-white/5 hover:bg-white/5">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Users className="w-4 h-4 text-primary" />
+      <div className="glass rounded-lg overflow-hidden border border-white/5">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/5">
+                <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Player</th>
+                <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Email</th>
+                <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Total deposits</th>
+                <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Loading…</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No players found.</td></tr>
+              ) : (
+                filtered.map((p) => (
+                  <tr key={p.id ?? p._id ?? p.email} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Users className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="font-medium text-sm">{p.fullName ?? p.name ?? p.email}</span>
                       </div>
-                      <span className="font-medium text-sm">{p.fullName ?? p.name ?? p.email}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">{p.email}</td>
-                  <td className="py-3 px-4">
-                    <StatusBadge status={statusConfig[p.status ?? ""] ?? "pending"}>{p.status ?? "pending"}</StatusBadge>
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-primary">
-                    ${(p.totalDeposits ?? 0).toFixed(2)}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">
-                    {p.createdAt ?? (p.createdAtDate ? new Date(p.createdAtDate).toLocaleDateString() : "—")}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">{p.email}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <StatusBadge status={statusConfig[p.status ?? ""] ?? "pending"}>{p.status ?? "pending"}</StatusBadge>
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-primary whitespace-nowrap">
+                      ${(p.totalDeposits ?? 0).toFixed(2)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
+                      {p.createdAt ?? (p.createdAtDate ? new Date(p.createdAtDate).toLocaleDateString() : "—")}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

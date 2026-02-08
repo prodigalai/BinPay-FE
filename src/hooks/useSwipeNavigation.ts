@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const allRoutes = [
-  { path: "/", roles: undefined },
+  { path: "/dashboard", roles: undefined },
   { path: "/players", roles: undefined },
   { path: "/deposits", roles: ["admin", "manager"] },
   { path: "/staff", roles: ["admin"] },

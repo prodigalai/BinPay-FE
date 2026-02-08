@@ -6,6 +6,7 @@ import type { WithdrawRequest, WithdrawRequestsResponse, WalletBalance } from ".
 import { toast } from "../hooks/use-toast";
 import { Button } from "../components/ui/button";
 import { GlassInput } from "../components/ui/glass-input";
+import { StatusBadge } from "../components/ui/status-badge";
 
 export default function Withdrawals() {
   const { user } = useAuth();
@@ -83,42 +84,44 @@ export default function Withdrawals() {
       {loading ? (
         <p className="text-muted-foreground text-center py-8">Loading…</p>
       ) : (
-        <div className="glass rounded-lg overflow-hidden">
-          <table className="w-full min-w-[400px]">
-            <thead>
-              <tr className="border-b border-white/10">
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Amount</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Status</th>
-                {isStaff && <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">User</th>}
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Date</th>
-                {canApprove && <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Action</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {requests.length === 0 ? (
-                <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No requests.</td></tr>
-              ) : (
-                requests.map((r) => (
-                  <tr key={r._id} className="border-b border-white/5 hover:bg-white/5">
-                    <td className="py-3 px-4 font-semibold">${r.amount?.toFixed(2) ?? "0.00"}</td>
-                    <td className="py-3 px-4 text-sm">{r.status}</td>
-                    {isStaff && <td className="py-3 px-4 text-sm">{typeof r.user === "object" ? r.user?.name ?? "—" : "—"}</td>}
-                    <td className="py-3 px-4 text-sm text-muted-foreground">{r.createdAt ? new Date(r.createdAt).toLocaleString() : "—"}</td>
-                    {canApprove && (
-                      <td className="py-3 px-4 text-right">
-                        {r.status === "PENDING" && (
-                          <>
-                            <Button variant="ghost" size="sm" className="text-green-400" onClick={() => handleStatus(r._id, "APPROVED")}>Approve</Button>
-                            <Button variant="ghost" size="sm" className="text-red-400" onClick={() => handleStatus(r._id, "REJECTED")}>Reject</Button>
-                          </>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="glass rounded-lg overflow-hidden border border-white/5">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/5">
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Amount</th>
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Status</th>
+                  {isStaff && <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">User</th>}
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Date</th>
+                  {canApprove && <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Action</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {requests.length === 0 ? (
+                  <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No requests.</td></tr>
+                ) : (
+                  requests.map((r) => (
+                    <tr key={r._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-4 font-semibold whitespace-nowrap">${r.amount?.toFixed(2) ?? "0.00"}</td>
+                      <td className="py-3 px-4 whitespace-nowrap"><StatusBadge status={r.status === "APPROVED" ? "completed" : r.status === "REJECTED" ? "failed" : "pending"}>{r.status}</StatusBadge></td>
+                      {isStaff && <td className="py-3 px-4 text-sm whitespace-nowrap">{typeof r.user === "object" ? r.user?.name ?? "—" : "—"}</td>}
+                      <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">{r.createdAt ? new Date(r.createdAt).toLocaleString() : "—"}</td>
+                      {canApprove && (
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          {r.status === "PENDING" && (
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="sm" className="text-green-400 hover:text-green-300 hover:bg-green-400/10" onClick={() => handleStatus(r._id, "APPROVED")}>Approve</Button>
+                              <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-red-400/10" onClick={() => handleStatus(r._id, "REJECTED")}>Reject</Button>
+                            </div>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

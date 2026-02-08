@@ -107,13 +107,13 @@ export default function Disputes() {
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {["all", "OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium ${statusFilter === s ? "bg-primary/20 text-primary border border-primary/30" : "bg-card/60 text-muted-foreground border border-white/10"}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${statusFilter === s ? "bg-primary/20 text-primary border border-primary/30" : "bg-card/60 text-muted-foreground border border-white/10 hover:bg-white/5"}`}
           >
             {s === "all" ? "All" : s}
           </button>
@@ -131,33 +131,35 @@ export default function Disputes() {
           />
         </div>
       ) : (
-        <div className="glass rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/10">
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Status</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Reason</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">User</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Date</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {disputes.map((d) => (
-                <tr key={d._id} className="border-b border-white/5 hover:bg-white/5">
-                  <td className="py-3 px-4"><StatusBadge status={d.status === "RESOLVED" || d.status === "CLOSED" ? "completed" : "pending"}>{d.status}</StatusBadge></td>
-                  <td className="py-3 px-4 text-sm truncate max-w-[200px]">{d.reason}</td>
-                  <td className="py-3 px-4 text-sm">{typeof d.user === "object" ? d.user?.name ?? "—" : "—"}</td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : "—"}</td>
-                  <td className="py-3 px-4 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/disputes/${d._id}`)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </td>
+        <div className="glass rounded-lg overflow-hidden border border-white/5">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/5">
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Status</th>
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Reason</th>
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">User</th>
+                  <th className="py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Date</th>
+                  <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase whitespace-nowrap">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {disputes.map((d) => (
+                  <tr key={d._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td className="py-3 px-4 whitespace-nowrap"><StatusBadge status={d.status === "RESOLVED" || d.status === "CLOSED" ? "completed" : "pending"}>{d.status}</StatusBadge></td>
+                    <td className="py-3 px-4 text-sm truncate max-w-[200px] sm:max-w-xs">{d.reason}</td>
+                    <td className="py-3 px-4 text-sm whitespace-nowrap">{typeof d.user === "object" ? d.user?.name ?? "—" : "—"}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : "—"}</td>
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/disputes/${d._id}`)} className="h-8 w-8 p-0">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

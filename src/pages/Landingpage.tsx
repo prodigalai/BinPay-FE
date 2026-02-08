@@ -87,7 +87,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#020202] text-foreground overflow-hidden selection:bg-green-500/30">
+    <div className="min-h-screen w-full text-foreground overflow-hidden selection:bg-green-500/30">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[1000px] md:h-[1000px] bg-green-500/10 md:bg-primary/15 rounded-full blur-[100px] md:blur-[200px]" />
@@ -194,7 +194,7 @@ export default function Landing() {
 
       {/* Hero Section */}
       <section className="relative z-10  lg:px-12 pt-32 lg:pt-32 pb-20">
-        <div className="max-w-[100%] w-full mx-auto">
+        <div className="max-w-7xl w-full mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Card Visual */}
             <div className="relative order-2 lg:order-1 animate-fade-up delay-200 hidden md:block">

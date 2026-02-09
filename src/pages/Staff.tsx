@@ -79,19 +79,29 @@ export default function Staff() {
         // Add mode
         let endpoint = "admin/staff";
         if (data.role === "AGENT") {
-            endpoint = "admin/agents";
+          endpoint = "admin/agents";
         } else if (user?.role === "AGENT") {
-            endpoint = "agent/staff";
+          endpoint = "agent/staff";
         }
 
-        await api.post(endpoint, { 
-            name: data.fullName, 
-            email: data.email, 
-            password: data.password, 
-            role: data.role,
-            location: data.location 
+        const res: any = await api.post(endpoint, {
+          name: data.fullName,
+          email: data.email,
+          password: data.password,
+          role: data.role,
+          location: data.location,
         });
-        toast({ title: "Success", description: `${data.role} member added.` });
+
+        const createdUser = res?.user;
+        // Show credentials so admin can share manually if email doesn't arrive
+        if (createdUser?.email && createdUser?.password) {
+          toast({
+            title: "Member created",
+            description: `Share these credentials with the user:\nEmail: ${createdUser.email}\nPassword: ${createdUser.password}`,
+          });
+        } else {
+          toast({ title: "Success", description: `${data.role} member added.` });
+        }
       }
       setEditingStaff(null);
       await fetchStaff();

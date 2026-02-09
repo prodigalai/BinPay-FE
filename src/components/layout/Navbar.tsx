@@ -17,9 +17,9 @@ import { LogoutConfirmModal } from "../modals/LogoutConfirmModal";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { name: "Players", path: "/players", icon: Users, roles: ["ADMIN", "STAFF"] },
+  // { name: "Players", path: "/players", icon: Users, roles: ["ADMIN", "STAFF"] },
   { name: "Deposits", path: "/deposits", icon: Wallet },
-  { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN"] },
+  { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
   { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight },
   { name: "Disputes", path: "/disputes", icon: AlertTriangle },
 ];

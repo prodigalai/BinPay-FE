@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet, ArrowUpRight } from "lucide-react";
+import { Wallet, ArrowUpRight, MapPin } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import type { WithdrawRequest, WithdrawRequestsResponse, WalletBalance } from "../lib/api";
@@ -17,6 +17,7 @@ export default function Withdrawals() {
   const [submitting, setSubmitting] = useState(false);
 
   const isStaff = user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "SUPPORT";
+  const isAgentOrStaff = ["AGENT", "STAFF", "SUPPORT", "ADMIN"].includes(user?.role || "");
   const canApprove = user?.role === "ADMIN" || user?.role === "STAFF";
 
   useEffect(() => {
@@ -65,7 +66,15 @@ export default function Withdrawals() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      <h1 className="text-xl sm:text-2xl font-bold">Withdrawals</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Withdrawals</h1>
+        {isAgentOrStaff && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+            <MapPin className="w-3 h-3" />
+            {user?.role === "ADMIN" ? "All Locations" : user?.location || "No Location"}
+          </span>
+        )}
+      </div>
 
       <div className="glass rounded-lg p-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">

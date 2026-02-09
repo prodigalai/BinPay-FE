@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { api, type AuthUser, type LoginResponse } from "../lib/api";
 
-export type UserRole = "ADMIN" | "STAFF" | "SUPPORT" | "PLAYER";
+export type UserRole = "ADMIN" | "STAFF" | "SUPPORT" | "PLAYER" | "AGENT";
 
 interface AuthContextType {
   user: AuthUser | null;

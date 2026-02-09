@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { GlassInput } from "../ui/glass-input";
@@ -10,12 +10,14 @@ export interface StaffFormData {
   fullName: string;
   email: string;
   password?: string;
-  role: "STAFF" | "SUPPORT" | "ADMIN";
+  role: "STAFF" | "SUPPORT" | "ADMIN" | "AGENT";
+  location?: string;
 }
 
-const roleOptions: { value: StaffFormData["role"]; label: string }[] = [
+const roleOptions = [
   { value: "STAFF", label: "Staff" },
   { value: "SUPPORT", label: "Support" },
+  { value: "AGENT", label: "Agent" },
 ];
 
 interface AddStaffModalProps {
@@ -31,21 +33,32 @@ export function AddStaffModal({ isOpen, onClose, onSubmit, initialData }: AddSta
     email: "",
     password: "",
     role: "STAFF",
+    location: "",
   });
   const [submitting, setSubmitting] = useState(false);
 
   // Sync with initialData when modal opens
-  if (isOpen && initialData && formData.email !== initialData.email) {
-    setFormData({
-      fullName: initialData.name,
-      email: initialData.email,
-      password: "",
-      role: (initialData.role as StaffFormData["role"]) || "STAFF",
-    });
-  } else if (isOpen && !initialData && formData.email !== "") {
-    // Reset if switching to Add mode
-    setFormData({ fullName: "", email: "", password: "", role: "STAFF" });
-  }
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          fullName: initialData.name,
+          email: initialData.email,
+          password: "",
+          role: (initialData.role as StaffFormData["role"]) || "STAFF",
+          location: initialData.location || "",
+        });
+      } else {
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          role: "STAFF",
+          location: "",
+        });
+      }
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -84,15 +97,19 @@ export function AddStaffModal({ isOpen, onClose, onSubmit, initialData }: AddSta
             <GlassInput showSearchIcon={false} type="email" placeholder="email@example.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">Password {initialData && <span className="text-xs font-normal opacity-50">(Leave blank to keep current)</span>}</label>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">Password {initialData ? <span className="text-xs font-normal opacity-50">(Leave blank to keep current)</span> : <span className="text-xs font-normal opacity-50">(Leave blank to send via email)</span>}</label>
             <GlassInput 
               showSearchIcon={false} 
               type="password" 
               placeholder={initialData ? "Only to change password" : "••••••••"} 
               value={formData.password} 
               onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-              required={!initialData} 
+              required={false} 
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">Location (Office/Branch Name)</label>
+            <GlassInput showSearchIcon={false} placeholder="e.g., Delhi Office, Site-B" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required />
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">Role</label>

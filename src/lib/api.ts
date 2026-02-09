@@ -1,11 +1,11 @@
-const API_BASE = "https://api.goat0p.com/api/v1";
-const API_URL = "https://api.goat0p.com/api/v1"
+const API_URL = "http://localhost:5000/api/v1";
 
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "SUPPORT" | "STAFF" | "PLAYER";
+  role: "ADMIN" | "SUPPORT" | "STAFF" | "PLAYER" | "AGENT";
+  location?: string;
 }
 
 export interface LoginResponse {
@@ -16,13 +16,15 @@ export interface LoginResponse {
 
 export interface Order {
   _id: string;
-  user: string;
+  user: { _id: string; name: string; location?: string } | string;
   amount: number;
   currency?: string;
   status: string;
   gateway: string;
   gatewayOrderId?: string;
   paymentLink?: string;
+  location?: string;
+  generatedBy?: { _id: string; name: string; role: string };
   createdAt: string;
 }
 
@@ -83,6 +85,7 @@ export interface StaffMember {
   name: string;
   email: string;
   role: string;
+  location?: string;
   createdAt?: string;
 }
 

@@ -23,6 +23,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
+import PaymentPage from "./pages/PaymentPage";
+
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -54,13 +56,14 @@ function AnimatedRoutes() {
         <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/players" element={<RoleRoute allowedRoles={["ADMIN", "STAFF"]}><Players /></RoleRoute>} />
         <Route path="/deposits" element={<ProtectedRoute><Deposits /></ProtectedRoute>} />
-        <Route path="/staff" element={<RoleRoute allowedRoles={["ADMIN"]}><Staff /></RoleRoute>} />
+        <Route path="/staff" element={<RoleRoute allowedRoles={["ADMIN", "AGENT"]}><Staff /></RoleRoute>} />
         <Route path="/disputes" element={<ProtectedRoute><Disputes /></ProtectedRoute>} />
         <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetail /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/withdrawals" element={<ProtectedRoute><Withdrawals /></ProtectedRoute>} />
+        <Route path="/pay/:id" element={<PaymentPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </PageTransition>
@@ -70,6 +73,8 @@ function AnimatedRoutes() {
 function AppRoutes() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const isPublicPage = ["/", "/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/pay");
+
   return (
     <div className="min-h-screen bg-background relative">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -80,8 +85,8 @@ function AppRoutes() {
         </div>
         <div className="absolute top-1/3 -right-32 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px]" />
       </div>
-      {!["/", "/login", "/register"].includes(location.pathname) && isAuthenticated && <Navbar />}
-      {!["/", "/login", "/register"].includes(location.pathname) && isAuthenticated && <BottomNav />}
+      {!isPublicPage && isAuthenticated && <Navbar />}
+      {!isPublicPage && isAuthenticated && <BottomNav />}
       {isAuthenticated && <SwipeHandler />}
       <main className={isAuthenticated ? "relative pt-16 sm:pt-20 pb-20 md:pb-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto" : ""}>
         <AnimatedRoutes />

@@ -25,11 +25,11 @@ export function PerformanceChart() {
         </div>
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
             <span className="text-xs text-muted-foreground font-medium">Deposits</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-purple-600 shadow-[0_0_8px_rgba(147,51,234,0.5)]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-black border border-white/20 shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
             <span className="text-xs text-muted-foreground font-medium">Withdrawals</span>
           </div>
         </div>
@@ -37,7 +37,7 @@ export function PerformanceChart() {
       <div className="h-[250px] sm:h-[320px] chart-grid rounded-lg p-2">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(168,85,247,0.1)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
@@ -56,8 +56,8 @@ export function PerformanceChart() {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "rgba(13, 6, 24, 0.9)",
-                border: "1px solid rgba(168, 85, 247, 0.2)",
+                backgroundColor: "rgba(10, 10, 10, 0.9)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
                 borderRadius: "12px",
                 backdropFilter: "blur(12px)",
                 boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
@@ -65,23 +65,23 @@ export function PerformanceChart() {
               }}
               itemStyle={{ fontSize: "12px", fontWeight: 500 }}
               labelStyle={{ color: "#e5e7eb", marginBottom: "8px", fontSize: "12px" }}
-              cursor={{ stroke: 'rgba(168,85,247,0.2)', strokeWidth: 2 }}
+              cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
             />
             <Line
               type="monotone"
               dataKey="deposits"
-              stroke="#a855f7"
+              stroke="#22c55e"
               strokeWidth={3}
               dot={false}
-              activeDot={{ r: 6, fill: "#a855f7", strokeWidth: 4, stroke: "rgba(168,85,247,0.3)" }}
+              activeDot={{ r: 6, fill: "#22c55e", strokeWidth: 4, stroke: "rgba(34,197,94,0.3)" }}
             />
             <Line
               type="monotone"
               dataKey="withdrawals"
-              stroke="#9333ea"
+              stroke="#000000"
               strokeWidth={3}
               dot={false}
-              activeDot={{ r: 6, fill: "#9333ea", strokeWidth: 4, stroke: "rgba(147,51,234,0.3)" }}
+              activeDot={{ r: 6, fill: "#000000", strokeWidth: 4, stroke: "rgba(255,255,255,0.3)" }}
             />
           </LineChart>
         </ResponsiveContainer>

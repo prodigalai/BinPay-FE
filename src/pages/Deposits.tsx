@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Activity, Plus, Search, Filter, Loader2, ExternalLink, Wallet, TrendingUp, History } from "lucide-react";
+import { Activity, Plus, Search, Filter, Loader2, ExternalLink, Wallet, TrendingUp, History, MapPin } from "lucide-react";
 import { api, type Order, type OrdersResponse, type WalletBalance } from "../lib/api";
 import { StatusBadge } from "../components/ui/status-badge";
 import { CreateDepositModal } from "../components/modals/CreateDepositModal";
 import { Button } from "../components/ui/button";
+import { useAuth } from "../contexts/AuthContext";
 
 const filterOptions = [
   { value: "all", label: "All Status" },
@@ -19,6 +20,9 @@ function statusToBadge(s: string): "pending" | "completed" | "failed" {
 }
 
 export default function Deposits() {
+  const { user } = useAuth();
+  const isAgentOrStaff = ["AGENT", "STAFF", "SUPPORT", "ADMIN"].includes(user?.role || "");
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState<number | null>(null);
@@ -60,7 +64,15 @@ export default function Deposits() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Deposits</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold">Deposits</h1>
+            {isAgentOrStaff && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+                <MapPin className="w-3 h-3" />
+                {user?.role === "ADMIN" ? "All Locations" : user?.location || "No Location"}
+              </span>
+            )}
+          </div>
           <p className="text-muted-foreground text-sm mt-1">Add funds and track your transaction history</p>
         </div>
         <button 
@@ -143,6 +155,12 @@ export default function Deposits() {
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="text-left py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Transaction ID</th>
+                  {isAgentOrStaff && (
+                    <>
+                      <th className="text-left py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">User</th>
+                      <th className="text-left py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Managed By</th>
+                    </>
+                  )}
                   <th className="text-left py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Amount</th>
                   <th className="text-left py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gateway</th>
                   <th className="text-left py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
@@ -177,6 +195,25 @@ export default function Deposits() {
                           <code className="text-xs text-muted-foreground group-hover:text-white transition-colors">#{o._id.slice(-8).toUpperCase()}</code>
                         </div>
                       </td>
+                      {isAgentOrStaff && (
+                        <>
+                          <td className="py-4 px-6">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-white">{(o.user as any)?.name || "Player"}</span>
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <MapPin className="w-2 h-2" />
+                                {o.location || (o.user as any)?.location || "General"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-white">{o.generatedBy?.name || "System"}</span>
+                              <span className="text-[10px] text-primary font-bold uppercase tracking-tighter">{o.generatedBy?.role || "AUTO"}</span>
+                            </div>
+                          </td>
+                        </>
+                      )}
                       <td className="py-4 px-6 font-bold text-white">
                         ${(o.amount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>

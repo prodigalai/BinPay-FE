@@ -64,23 +64,32 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer utilities {
   /* Glass morphism */
   .glass {
-    @apply bg-card/60 backdrop-blur-xl border border-white/5 shadow-2xl;
+    background-color: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .glass-strong {
-    @apply bg-card/80 backdrop-blur-2xl border border-white/10 shadow-2xl;
+    background-color: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(32px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   /* No Text Glow - Clean White Numbers */
@@ -91,12 +100,18 @@
 
   /* Clean Chart Card */
   .premium-chart-card {
-    @apply bg-card border border-primary/10 rounded-2xl;
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--primary) / 0.1);
+    border-radius: 1rem;
   }
 
   /* BUTTONS - Green Gradient */
   .neon-button {
-    @apply relative overflow-hidden text-primary-foreground font-semibold rounded-lg;
+    position: relative;
+    overflow: hidden;
+    color: hsl(var(--primary-foreground));
+    font-weight: 600;
+    border-radius: 0.5rem;
     background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     box-shadow: 0 4px 12px hsl(var(--primary) / 0.25);
     transition: all 0.2s ease;
@@ -114,7 +129,11 @@
   
   /* Accent Button */
   .neon-button-accent {
-    @apply relative overflow-hidden text-primary-foreground font-semibold rounded-lg;
+    position: relative;
+    overflow: hidden;
+    color: hsl(var(--primary-foreground));
+    font-weight: 600;
+    border-radius: 0.5rem;
     background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
     box-shadow: 0 4px 12px hsl(var(--accent) / 0.25);
     transition: all 0.2s ease;
@@ -128,28 +147,44 @@
   /* Minimal Green Borders */
   .gradient-border {
     position: relative;
-    @apply bg-card rounded-2xl border border-primary/15;
+    background-color: hsl(var(--card));
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--primary) / 0.15);
   }
   
   /* Status pills */
   .status-pill {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid;
   }
   
   .status-pending {
-    @apply bg-primary/10 text-primary border-primary/20;
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.2);
   }
 
   .status-verified {
-    @apply bg-success/10 text-success border-success/20;
+    background-color: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+    border-color: hsl(var(--success) / 0.2);
   }
 
   .status-blocked {
-    @apply bg-destructive/10 text-destructive border-destructive/20;
+    background-color: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+    border-color: hsl(var(--destructive) / 0.2);
   }
 
   .status-admin {
-    @apply bg-accent/10 text-accent border-accent/20;
+    background-color: hsl(var(--accent) / 0.1);
+    color: hsl(var(--accent));
+    border-color: hsl(var(--accent) / 0.2);
   }
 
   /* Chart grid */
@@ -160,14 +195,31 @@
     background-size: 40px 40px;
   }
 
-  /* Fade Animation */
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s infinite ease-in-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
   }
   
-  /* Glow effects helper classes */
-  .glow-primary {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+  .glass-border-b {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
   }
 }
 
@@ -191,6 +243,21 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(0.98); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }

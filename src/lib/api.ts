@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/v1";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 
 export interface AuthUser {
   id: string;
@@ -25,6 +25,8 @@ export interface Order {
   paymentLink?: string;
   location?: string;
   generatedBy?: { _id: string; name: string; role: string };
+  feePercent?: number;
+  webhookLogs?: Array<{ event: string; timestamp: string; processed: boolean; reason?: string }>;
   createdAt: string;
 }
 

@@ -3,6 +3,7 @@ import { Plus, User, Trash2, Edit2, MoreVertical, MapPin, ShieldCheck, UserCog }
 import { cn } from "../lib/utils";
 import { AddStaffModal } from "../components/modals/AddStaffModal";
 import { ConfirmActionModal } from "../components/modals/ConfirmActionModal";
+import { CredentialsModal } from "../components/modals/CredentialsModal";
 import type { StaffFormData } from "../components/modals/AddStaffModal";
 import { api } from "../lib/api";
 import type { StaffMember, StaffListResponse } from "../lib/api";
@@ -36,6 +37,7 @@ export default function Staff() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"staff" | "agents">("staff");
+  const [credentialsModal, setCredentialsModal] = useState<{ email: string; password: string } | null>(null);
 
   const fetchStaff = async () => {
     setLoading(true);
@@ -93,12 +95,8 @@ export default function Staff() {
         });
 
         const createdUser = res?.user;
-        // Show credentials so admin can share manually if email doesn't arrive
         if (createdUser?.email && createdUser?.password) {
-          toast({
-            title: "Member created",
-            description: `Share these credentials with the user:\nEmail: ${createdUser.email}\nPassword: ${createdUser.password}`,
-          });
+          setCredentialsModal({ email: createdUser.email, password: createdUser.password });
         } else {
           toast({ title: "Success", description: `${data.role} member added.` });
         }
@@ -271,6 +269,16 @@ export default function Staff() {
         isDestructive={true}
         isLoading={actionLoading}
       />
+
+      {credentialsModal && (
+        <CredentialsModal
+          isOpen={!!credentialsModal}
+          onClose={() => setCredentialsModal(null)}
+          email={credentialsModal.email}
+          password={credentialsModal.password}
+          title="Member created"
+        />
+      )}
     </div>
   );
 }

@@ -50,9 +50,9 @@ export function Navbar() {
             {/* Logo */}
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center p-0.5">
-                <img src="/logo.png" alt="Binpay" className="w-full h-full object-contain rounded-md" />
+                <img src="/logo.png" alt="Pay4Edge" className="w-full h-full object-contain rounded-md" />
               </div>
-              <span className="text-lg sm:text-xl font-bold text-white hidden sm:block">Binpay</span>
+              <span className="text-lg sm:text-xl font-bold text-white hidden sm:block">Pay4Edge</span>
             </div>
 
             {/* Desktop Navigation */}

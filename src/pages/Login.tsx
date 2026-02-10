@@ -39,10 +39,10 @@ export default function Login() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-background/90" />
         <div className="relative z-10 p-12 max-w-lg text-center">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto shadow-2xl shadow-primary/30 mb-6 p-1">
-            <img src="/logo.png" alt="Binpay" className="w-full h-full object-contain rounded-xl" />
+            <img src="/logo.png" alt="Pay4Edge" className="w-full h-full object-contain rounded-xl" />
           </div>
           <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-4">
-            Binpay
+            Pay4Edge
           </h1>
           <p className="text-xl text-white/70 font-light">Payments, deposits, withdrawals & admin.</p>
         </div>

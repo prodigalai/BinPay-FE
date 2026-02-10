@@ -82,7 +82,7 @@ export default function PaymentPage() {
           <h1 className="text-3xl font-bold mt-2">
              ${order.amount.toFixed(2)} <span className="text-lg text-muted-foreground font-normal">{order.currency}</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">to {order.user?.name || "Binpay User"}</p>
+          <p className="text-sm text-muted-foreground mt-2">to {order.user?.name || "Pay4Edge User"}</p>
         </div>
 
         <div className="space-y-4 mb-8">
@@ -132,7 +132,7 @@ export default function PaymentPage() {
         <div className="mt-8 text-center">
             <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1">
                 <ShieldCheck className="w-3 h-3" />
-                Secured by Binpay
+                Secured by Pay4Edge
             </p>
         </div>
       </div>

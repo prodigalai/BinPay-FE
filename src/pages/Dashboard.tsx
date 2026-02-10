@@ -324,7 +324,7 @@ export default function Dashboard() {
                                         onClick={() => {
                                             if (generatedLink) {
                                                 if (navigator.share) {
-                                                    navigator.share({ title: 'Binpay Payment', url: generatedLink });
+                                                    navigator.share({ title: 'Pay4Edge Payment', url: generatedLink });
                                                 } else {
                                                     copyToClipboard(generatedLink);
                                                 }
@@ -586,7 +586,7 @@ export default function Dashboard() {
                </div>
              </div>
              <p className="text-[9px] text-muted-foreground font-bold tracking-widest uppercase italic">
-                Logs represent the final handshake between Binpay and Payment Providers
+                Logs represent the final handshake between Pay4Edge and Payment Providers
              </p>
           </div>
         </div>

@@ -139,7 +139,7 @@ export interface PlayersResponse {
 }
 
 function getToken(): string | null {
-  return localStorage.getItem("binpay_token");
+  return localStorage.getItem("pay4edge_token");
 }
 
 async function request<T>(
@@ -163,8 +163,8 @@ async function request<T>(
   const data = await res.json().catch(() => ({}));
 
   if (res.status === 401) {
-    localStorage.removeItem("binpay_token");
-    localStorage.removeItem("binpay_user");
+    localStorage.removeItem("pay4edge_token");
+    localStorage.removeItem("pay4edge_user");
     window.location.href = "/login";
     return Promise.reject(new Error("Unauthorized"));
   }

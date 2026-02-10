@@ -21,6 +21,7 @@ import Notifications from "./pages/Notifications";
 import Withdrawals from "./pages/Withdrawals";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 import PaymentPage from "./pages/PaymentPage";
@@ -52,6 +53,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/players" element={<RoleRoute allowedRoles={["ADMIN", "STAFF"]}><Players /></RoleRoute>} />
@@ -73,7 +75,7 @@ function AnimatedRoutes() {
 function AppRoutes() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const isPublicPage = ["/", "/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/pay");
+  const isPublicPage = ["/", "/login", "/register", "/terms"].includes(location.pathname) || location.pathname.startsWith("/pay");
 
   return (
     <div className="min-h-screen bg-background relative">

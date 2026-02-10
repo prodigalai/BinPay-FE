@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { 
   ArrowRight, 
   Shield, 
@@ -101,9 +101,9 @@ export default function Landing() {
         {/* Logo - Left */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] border border-green-500/50 shrink-0 overflow-hidden">
-            <img src="/logo.png" alt="BinPay Logo" className="w-full h-full object-cover p-1" />
+            <img src="/logo.png" alt="Pay4Edge Logo" className="w-full h-full object-cover p-1" />
           </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-green-400 via-green-500 to-emerald-500 bg-clip-text text-transparent truncate">BinPay</span>
+          <span className="text-lg font-bold bg-gradient-to-r from-green-400 via-green-500 to-emerald-500 bg-clip-text text-transparent truncate">Pay4Edge</span>
         </div>
 
         {/* Desktop Links - Center column (grid middle cell) */}
@@ -296,7 +296,7 @@ export default function Landing() {
           {/* Section Header */}
           <div className="text-center mb-16 animate-fade-up">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-6">
-              <span className="text-sm text-primary font-medium">Why BinPay</span>
+              <span className="text-sm text-primary font-medium">Why Pay4Edge</span>
             </div>
             <h2 className="text-3xl lg:text-5xl font-bold mb-4">
               Payment Processing
@@ -354,7 +354,7 @@ export default function Landing() {
               Specialized in <span className="gradient-text">High-Risk Verticals</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Whether you're licensed or unlicensed, BinPay helps you process payments without the headaches of mainstream processors.
+              Whether you're licensed or unlicensed, Pay4Edge helps you process payments without the headaches of mainstream processors.
             </p>
           </div>
 
@@ -404,7 +404,7 @@ export default function Landing() {
                 <div className="w-3 h-3 rounded-full bg-primary/60" />
               </div>
               <div className="flex-1 px-4 py-1.5 rounded-md bg-background/50 text-xs text-muted-foreground font-mono">
-                https://pay.binpay.com/5kb1063wn2byvitxmugu
+                https://pay.pay4edge.com/5kb1063wn2byvitxmugu
               </div>
             </div>
 
@@ -420,7 +420,7 @@ export default function Landing() {
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Gamepad2 className="w-4 h-4 text-primary" />
                     </div>
-                    <span className="font-semibold">BinPay</span>
+                    <span className="font-semibold">Pay4Edge</span>
                   </div>
                 </div>
 
@@ -513,7 +513,7 @@ export default function Landing() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Telegram</p>
-                    <p className="font-semibold">@binpaysupport</p>
+                    <p className="font-semibold">@pay4edgesupport</p>
                   </div>
                 </div>
 
@@ -523,7 +523,7 @@ export default function Landing() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-semibold">support@binpay.com</p>
+                    <p className="font-semibold">support@pay4edge.com</p>
                   </div>
                 </div>
               </div>
@@ -602,9 +602,9 @@ export default function Landing() {
             <div className="space-y-4 animate-fade-up">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)] overflow-hidden">
-                  <img src="/logo.png" alt="BinPay Logo" className="w-full h-full object-cover p-1" />
+                  <img src="/logo.png" alt="Pay4Edge Logo" className="w-full h-full object-cover p-1" />
                 </div>
-                <span className="font-bold text-lg">BinPay</span>
+                <span className="font-bold text-lg">Pay4Edge</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 The premier payment processor for high-risk and gaming industries. Secure, instant, and reliable.
@@ -624,7 +624,7 @@ export default function Landing() {
               <h4 className="font-semibold mb-4 text-foreground">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Compliance</a></li>
               </ul>
             </div>
@@ -641,7 +641,7 @@ export default function Landing() {
           
           <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in delay-500">
             <p className="text-sm text-muted-foreground">
-              © 2026 BinPay Inc. All rights reserved.
+              © 2026 Pay4Edge Inc. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />

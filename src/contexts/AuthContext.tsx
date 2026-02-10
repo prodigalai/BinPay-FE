@@ -23,7 +23,7 @@ const roleNames: Record<string, string> = {
 
 function loadStoredUser(): AuthUser | null {
   try {
-    const stored = localStorage.getItem("binpay_user");
+    const stored = localStorage.getItem("pay4edge_user");
     return stored ? (JSON.parse(stored) as AuthUser) : null;
   } catch {
     return null;
@@ -34,13 +34,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(loadStoredUser);
 
   useEffect(() => {
-    if (user) localStorage.setItem("binpay_user", JSON.stringify(user));
+    if (user) localStorage.setItem("pay4edge_user", JSON.stringify(user));
   }, [user]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await api.post<LoginResponse>("auth/login", { email, password });
     if (data.success && data.token && data.user) {
-      localStorage.setItem("binpay_token", data.token);
+      localStorage.setItem("pay4edge_token", data.token);
       setUser(data.user);
     } else {
       throw new Error("Login failed");
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (name: string, email: string, password: string, role: UserRole) => {
       const data = await api.post<LoginResponse>("auth/register", { name, email, password, role });
       if (data.success && data.token && data.user) {
-        localStorage.setItem("binpay_token", data.token);
+        localStorage.setItem("pay4edge_token", data.token);
         setUser(data.user);
       } else {
         throw new Error("Registration failed");
@@ -62,8 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("binpay_user");
-    localStorage.removeItem("binpay_token");
+    localStorage.removeItem("pay4edge_user");
+    localStorage.removeItem("pay4edge_token");
   }, []);
 
   const updateProfile = useCallback(async (data: { name?: string; email?: string; password?: string }) => {

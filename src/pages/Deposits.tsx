@@ -46,6 +46,7 @@ export default function Deposits() {
   const [filter, setFilter] = useState("all");
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -69,9 +70,43 @@ export default function Deposits() {
     fetchData();
   }, [filter]);
 
+  useEffect(() => {
+    const hasPending = orders.some(o => o.status === "PENDING");
+    if (hasPending) {
+        const interval = setInterval(() => {
+            // Only fetch if tab is active to save resources
+            if (document.visibilityState === 'visible') {
+                fetchData();
+            }
+        }, 10000);
+        return () => clearInterval(interval);
+    }
+  }, [orders.length, orders.filter(o => o.status === "PENDING").length]);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "ID Copied", description: "Transaction ID copied to clipboard." });
+  };
+
+  const handleVerify = async (id: string) => {
+    setVerifyingId(id);
+    try {
+      const res = await api.get<{ success: boolean; order: Order }>(`payments/${id}/verify`);
+      if (res.success) {
+        if (res.order.status === "SUCCESS") {
+          toast({ title: "Payment Verified!", description: "Funds have been added to your wallet.", variant: "default" });
+        } else if (res.order.status === "FAILED") {
+          toast({ title: "Payment Failed", description: "The gateway reported a failed transaction.", variant: "destructive" });
+        } else {
+          toast({ title: "Still Pending", description: "Gateway hasn't confirmed the payment yet. Please wait a moment.", variant: "default" });
+        }
+        await fetchData();
+      }
+    } catch (err: any) {
+      toast({ title: "Verification Error", description: err.message, variant: "destructive" });
+    } finally {
+      setVerifyingId(null);
+    }
   };
 
   const filtered = orders.filter(
@@ -322,18 +357,30 @@ export default function Deposits() {
                     </td>
 
                     <td className="py-6 px-6 text-right">
-                      {o.status === "PENDING" && o.paymentLink ? (
-                        <button 
-                          onClick={() => window.open(o.paymentLink!, "_blank", "noopener,noreferrer")}
-                          className="px-4 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/50 hover:text-primary transition-all flex items-center gap-2 ml-auto group/btn"
-                        >
-                          <span className="text-[11px] font-black uppercase tracking-widest">Pay Now</span>
-                          <ExternalLink className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                        </button>
+                      {o.status === "PENDING" ? (
+                        <div className="flex flex-col sm:flex-row items-center justify-end gap-2 ml-auto">
+                           {o.paymentLink && (
+                            <button 
+                              onClick={() => window.open(o.paymentLink!, "_blank", "noopener,noreferrer")}
+                              className="px-3 h-8 rounded-lg bg-primary text-black hover:bg-primary-foreground transition-all flex items-center gap-2 group/btn whitespace-nowrap"
+                            >
+                              <span className="text-[10px] font-black uppercase tracking-widest">Pay Now</span>
+                              <ExternalLink className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                            </button>
+                           )}
+                           <button 
+                            onClick={() => handleVerify(o._id)}
+                            disabled={verifyingId === o._id}
+                            className="px-3 h-8 rounded-lg bg-white/5 border border-white/10 hover:bg-white/20 transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
+                          >
+                            {verifyingId === o._id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Activity className="w-3 h-3" />}
+                            <span className="text-[10px] font-black uppercase tracking-widest">Verify</span>
+                          </button>
+                        </div>
                       ) : (
                         <div className="flex items-center justify-end gap-2 text-muted-foreground opacity-40 italic text-[10px]">
                           <Check className="w-3 h-3" />
-                          Details
+                          Settled
                         </div>
                       )}
                     </td>
@@ -357,7 +404,7 @@ export default function Deposits() {
              </div>
           </div>
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">
-            Secure Payment Architecture Powered by <span className="text-primary italic">Binpay Shield</span>
+            Secure Payment Architecture Powered by <span className="text-primary italic">Pay4Edge Shield</span>
           </p>
         </div>
       </div>

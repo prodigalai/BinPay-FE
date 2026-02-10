@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Lock, Mail, LogIn, Loader2, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Lock, Mail, Loader2, ArrowRight } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { motion } from "framer-motion";
 
@@ -95,9 +95,8 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link to="/register" className="text-primary hover:underline">Register</Link>
+          <p className="text-center text-xs text-muted-foreground">
+            Don&apos;t have an account? Contact your Master / Agent to get access.
           </p>
         </motion.div>
       </div>

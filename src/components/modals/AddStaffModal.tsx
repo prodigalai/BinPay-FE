@@ -14,20 +14,17 @@ export interface StaffFormData {
   location?: string;
 }
 
-const roleOptions = [
-  { value: "STAFF", label: "Staff" },
-  { value: "SUPPORT", label: "Support" },
-  { value: "AGENT", label: "Agent" },
-];
+
 
 interface AddStaffModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: StaffFormData) => void | Promise<void>;
   initialData?: StaffMember | null;
+  currentUserRole?: string;
 }
 
-export function AddStaffModal({ isOpen, onClose, onSubmit, initialData }: AddStaffModalProps) {
+export function AddStaffModal({ isOpen, onClose, onSubmit, initialData, currentUserRole }: AddStaffModalProps) {
   const [formData, setFormData] = useState<StaffFormData>({
     fullName: "",
     email: "",
@@ -76,6 +73,12 @@ export function AddStaffModal({ isOpen, onClose, onSubmit, initialData }: AddSta
       setSubmitting(false);
     }
   };
+
+  const roleOptions = [
+    { value: "STAFF", label: "Staff" },
+    { value: "SUPPORT", label: "Support" },
+    ...(currentUserRole === "ADMIN" ? [{ value: "AGENT", label: "Agent" }] : []),
+  ];
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">

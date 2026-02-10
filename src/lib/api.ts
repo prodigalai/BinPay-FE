@@ -138,6 +138,20 @@ export interface PlayersResponse {
   pagination?: { page: number; total: number; pages: number };
 }
 
+export interface Notification {
+  _id: string;
+  type: "DEPOSIT" | "WITHDRAWAL" | "ALERT" | "SECURITY" | "USER";
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  success: boolean;
+  notifications: Notification[];
+}
+
 function getToken(): string | null {
   return localStorage.getItem("pay4edge_token");
 }

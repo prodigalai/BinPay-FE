@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -9,27 +9,42 @@ import {
   ChevronDown,
   Bell,
   LogOut,
+  Link as LinkIcon,
   ArrowUpRight
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../contexts/AuthContext";
+import { api, NotificationsResponse } from "../../lib/api";
 import { LogoutConfirmModal } from "../modals/LogoutConfirmModal";
 
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  // { name: "Players", path: "/players", icon: Users, roles: ["ADMIN", "STAFF"] },
-  { name: "Deposits", path: "/deposits", icon: Wallet },
+  { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
+  { name: "Generated", path: "/generated-links", icon: LinkIcon, roles: ["STAFF", "SUPPORT"] },
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
-  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight },
-  { name: "Disputes", path: "/disputes", icon: AlertTriangle },
+  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "AGENT", "PLAYER"] },
+  { name: "Disputes", path: "/disputes", icon: AlertTriangle, roles: ["ADMIN", "AGENT", "SUPPORT"] },
 ];
 
 export function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      api.get<NotificationsResponse>("notifications")
+        .then(r => {
+          if (r.success) {
+            setUnreadCount(r.notifications.filter(n => !n.read).length);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user, location.pathname]); 
 
   const handleLogout = () => {
     logout();
@@ -44,15 +59,14 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-primary/25">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 supports-[backdrop-filter]:bg-black/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center p-0.5">
-                <img src="/logo.png" alt="Pay4Edge" className="w-full h-full object-contain rounded-md" />
+            <div className="flex items-center gap-2 sm:gap-3 cursor-pointer" onClick={() => navigate("/dashboard")}>
+              <div className="h-10 sm:h-10 flex items-center justify-center overflow-hidden">
+                <img src="/navlogo.png" alt="Pay4Edge" className="h-full w-auto object-contain hover:opacity-80 transition-opacity" />
               </div>
-              <span className="text-lg sm:text-xl font-bold text-white hidden sm:block">Pay4Edge</span>
             </div>
 
             {/* Desktop Navigation */}
@@ -64,10 +78,10 @@ export function Navbar() {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300",
+                      "flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300",
                       isActive
-                        ? "bg-primary/15 text-white border border-primary/25"
-                        : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                        ? "bg-primary text-black shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                        : "text-muted-foreground hover:text-white hover:bg-white/5"
                     )}
                   >
                     <item.icon className="w-4 h-4" />
@@ -85,7 +99,9 @@ export function Navbar() {
                 className="relative p-1.5 sm:p-2 rounded-lg hover:bg-white/5 transition-colors"
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent rounded-full animate-pulse" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent rounded-full animate-pulse" />
+                )}
               </NavLink>
 
               {/* Profile Dropdown */}
@@ -110,7 +126,7 @@ export function Navbar() {
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-44 sm:w-48 glass-strong rounded-lg border border-white/10 py-1.5 animate-fade-in">
+                  <div className="absolute right-0 mt-3 w-56 bg-[#0a0a0f] border border-white/10 rounded-2xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2">
                     <NavLink 
                       to="/profile" 
                       onClick={() => setIsProfileOpen(false)}

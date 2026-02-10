@@ -1,53 +1,51 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
+<head>
+  <meta charset="UTF-8" />
 
-    <!-- PWA Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="Pay4Edge" />
-    <meta name="theme-color" content="#7c3aed" />
-    <meta name="msapplication-TileColor" content="#7c3aed" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
 
-    <!-- App Info -->
-    <title>Pay4Edge – Payments &amp; Admin</title>
-    <meta
-      name="description"
-      content="Pay4Edge – Payments, deposits, withdrawals, and admin dashboard"
-    />
-    <meta name="author" content="Pay4Edge" />
+  <!-- App Info -->
+  <title>Pay4Edge – Payments & Admin</title>
+  <meta name="description" content="Pay4Edge – Payments, deposits, withdrawals, and admin dashboard" />
+  <meta name="author" content="Pay4Edge" />
 
-    <!-- PWA Icons -->
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
-    <link rel="manifest" href="/manifest.json" />
+  <!-- Theme -->
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="msapplication-TileColor" content="#16a34a" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="Pay4Edge – Payments &amp; Admin" />
-    <meta
-      property="og:description"
-      content="Pay4Edge – Payments, deposits, withdrawals, and admin dashboard"
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/pwa-512x512.png" />
+  <!-- PWA -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pay4Edge" />
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Pay4Edge" />
-    <meta name="twitter:image" content="/pwa-512x512.png" />
-  </head>
+  <!-- Icons (MUST be inside /public folder) -->
+  <link rel="icon" href="/logo.png" />
+  <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+  <link rel="manifest" href="/manifest.json" />
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <!-- Open Graph -->
+  <meta property="og:title" content="Pay4Edge – Payments & Admin" />
+  <meta property="og:description" content="Pay4Edge – Payments dashboard" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/pwa-512x512.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/pwa-512x512.png" />
+
+</head>
+
+<body>
+
+  <div id="root"></div>
+
+  <!-- Vite Entry -->
+  <script type="module" src="/src/main.tsx"></script>
+
+</body>
 </html>

@@ -96,14 +96,13 @@ export default function Landing() {
       </div>
 
       {/* Floating Navigation - grid so center links stay in the bar */}
-      <nav className="fixed top-6 left-[5%] w-[90%] md:left-[20%] md:w-[60%] z-50 max-w-5xl px-6 py-3 rounded-full border border-border/40 glass-strong backdrop-blur-xl shadow-2xl animate-fade-down duration-700 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-4 flex flex-nowrap items-center justify-between">
+      <nav className="fixed top-6 left-[5%] w-[90%] md:left-[20%] md:w-[60%] z-50 max-w-5xl px-4 py-1 rounded-full border border-white/10 bg-black/80 backdrop-blur-2xl shadow-2xl animate-fade-down duration-700 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-4 flex flex-nowrap items-center justify-between">
 
         {/* Logo - Left */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] border border-green-500/50 shrink-0 overflow-hidden">
-            <img src="/logo.png" alt="Pay4Edge Logo" className="w-full h-full object-cover p-1" />
+        <div className="flex items-center gap-3 min-w-0 cursor-pointer" onClick={() => navigate("/")}>
+          <div className="h-50 md:h-12 flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="/navlogo.png" alt="Pay4Edge Logo" className="h-full w-auto object-contain p-0.5" />
           </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-green-400 via-green-500 to-emerald-500 bg-clip-text text-transparent truncate">Pay4Edge</span>
         </div>
 
         {/* Desktop Links - Center column (grid middle cell) */}
@@ -290,7 +289,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Why BinPay Section */}
+      {/* Why Pay4Edge Section */}
       <section id="features" className="relative z-10 px-6 lg:px-12 py-20">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
@@ -309,17 +308,17 @@ export default function Landing() {
           </div>
 
           {/* Core Feature Highlight */}
-          <div className="relative glass gradient-border rounded-2xl p-8 mb-12 animate-fade-up delay-100 group hover:border-primary/40 transition-all duration-500">
-            <div className="absolute top-4 right-4">
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/30 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+          <div className="relative bg-white/[0.02] border border-white/5 rounded-3xl p-8 mb-12 animate-fade-up delay-100 group hover:border-primary/40 transition-all duration-500 overflow-hidden">
+            <div className="absolute top-0 right-0 p-4">
+              <span className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/20 text-primary border border-primary/30 group-hover:bg-primary group-hover:text-black transition-all">
                 Core Feature
               </span>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Zap className="w-6 h-6 text-primary" />
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-primary/20">
+              <Zap className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Instant USDT Settlement</h3>
-            <p className="text-muted-foreground max-w-2xl">
+            <h3 className="text-2xl font-black text-white uppercase italic tracking-tight mb-3">Instant USDT Settlement</h3>
+            <p className="text-muted-foreground max-w-2xl font-medium leading-relaxed">
               No waiting for days. Receive your earnings in USDT the moment a transaction is approved. True instant settlement.
             </p>
           </div>
@@ -329,14 +328,14 @@ export default function Landing() {
             {coreFeatures.map((feature, index) => (
               <div 
                 key={index}
-                className="glass rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-all duration-300 group animate-fade-up"
+                className="bg-white/[0.02] rounded-3xl p-8 border border-white/5 hover:border-primary/30 transition-all duration-300 group animate-fade-up hover:bg-white/[0.04]"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors group-hover:scale-110 duration-300">
-                  <feature.icon className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-all group-hover:scale-110 duration-300 group-hover:text-primary border border-white/10 group-hover:border-primary/20">
+                  <feature.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
-                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <h3 className="text-lg font-bold text-white uppercase tracking-tight mb-3">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -409,8 +408,8 @@ export default function Landing() {
             </div>
 
             {/* Payment Form */}
-            <div className="p-8 lg:p-12 flex items-center justify-center">
-              <div className="w-full max-w-sm glass rounded-xl p-6 border border-border/50">
+            <div className="p-8 lg:p-12 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm bg-white/[0.04] backdrop-blur-md rounded-2xl p-8 border border-white/10 shadow-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="text-sm text-muted-foreground">Amount to pay</p>
@@ -541,7 +540,7 @@ export default function Landing() {
             </div>
 
             {/* Right - Contact Form */}
-            <div className="glass rounded-2xl p-8 border border-border/50">
+            <div className="bg-white/[0.02] rounded-3xl p-8 lg:p-10 border border-white/5">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="text-sm font-medium mb-2 block">

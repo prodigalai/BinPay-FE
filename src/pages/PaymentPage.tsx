@@ -71,43 +71,54 @@ export default function PaymentPage() {
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-accent/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="glass w-full max-w-md p-6 sm:p-8 rounded-2xl relative z-10 border border-white/10 shadow-2xl animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-              <ShieldCheck className="w-8 h-8 text-primary" />
+      <div className="bg-white/[0.02] backdrop-blur-3xl w-full max-w-md p-8 sm:p-10 rounded-3xl relative z-10 border border-white/5 shadow-2xl animate-fade-in flex flex-col items-center">
+        <div className="text-center mb-8 w-full">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 border border-white/5 flex items-center justify-center shadow-inner">
+              <ShieldCheck className="w-10 h-10 text-primary" />
             </div>
           </div>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-1">Payment Request</h2>
-          <h1 className="text-3xl font-bold mt-2">
-             ${order.amount.toFixed(2)} <span className="text-lg text-muted-foreground font-normal">{order.currency}</span>
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2">to {order.user?.name || "Pay4Edge User"}</p>
+          <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-3">Secure Payment Request</h2>
+          <div className="flex items-baseline justify-center gap-1">
+             <span className="text-lg text-muted-foreground font-bold align-top mt-2">$</span>
+             <h1 className="text-5xl font-black text-white tracking-tighter">
+                {order.amount.toFixed(2)}
+             </h1>
+          </div>
+          <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mt-2">{order.currency}</p>
+          <div className="mt-4 px-4 py-2 bg-white/5 rounded-full inline-flex items-center gap-2 border border-white/5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <p className="text-xs text-white/80 font-medium">To: {order.user?.name || "Pay4Edge User"}</p>
+          </div>
         </div>
 
-        <div className="space-y-4 mb-8">
-            <div className="flex justify-between py-3 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">Order ID</span>
-                <span className="text-sm font-mono opacity-80">{order.id.slice(-8).toUpperCase()}</span>
+        <div className="space-y-4 mb-8 w-full bg-black/20 rounded-2xl p-6 border border-white/5">
+            <div className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Order ID</span>
+                <span className="text-xs font-mono font-bold text-white/70">{order.id.slice(-8).toUpperCase()}</span>
             </div>
-            <div className="flex justify-between py-3 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">Description</span>
-                <span className="text-sm text-right opacity-80">{order.description || "Payment"}</span>
+            <div className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Description</span>
+                <span className="text-xs font-medium text-white/90 text-right max-w-[150px] truncate">{order.description || "General Payment"}</span>
             </div>
-            <div className="flex justify-between py-3 border-b border-white/5">
-                <span className="text-sm text-muted-foreground">Status</span>
-                <span className={`text-sm font-bold ${order.status === 'SUCCESS' ? 'text-green-400' : order.status === 'PENDING' ? 'text-yellow-400' : 'text-red-400'}`}>
+            <div className="flex justify-between items-center pt-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
+                <span className={`text-xs font-black uppercase tracking-widest px-2 py-1 rounded-lg ${
+                    order.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
+                    order.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 
+                    'bg-red-500/10 text-red-500 border border-red-500/20'
+                }`}>
                     {order.status}
                 </span>
             </div>
         </div>
 
         {order.status === 'PENDING' ? (
-            <div className="space-y-3">
+            <div className="space-y-3 w-full">
                 <button 
                     onClick={() => handlePayment('upi')}
                     disabled={paying}
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full h-14 bg-white text-black hover:bg-white/90 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(255,255,255,0.2)]"
                 >
                     {paying ? <Loader2 className="w-5 h-5 animate-spin" /> : <Banknote className="w-5 h-5" />}
                     Pay with UPI / Bank
@@ -115,7 +126,7 @@ export default function PaymentPage() {
                 <button 
                     onClick={() => handlePayment('card')}
                     disabled={paying}
-                    className="w-full h-12 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full h-14 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                    <CreditCard className="w-5 h-5" />
                    Pay with Card

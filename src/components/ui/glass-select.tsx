@@ -13,9 +13,9 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
         <select
           ref={ref}
           className={cn(
-            "w-full h-12 glass rounded-xl border border-white/10 bg-card/60 backdrop-blur-xl",
-            "px-4 pr-10 text-sm appearance-none cursor-pointer",
-            "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50",
+            "w-full h-12 bg-white/5 rounded-xl border border-white/10 backdrop-blur-xl text-white",
+            "px-4 pr-10 text-sm appearance-none cursor-pointer placeholder:text-muted-foreground/50",
+            "focus:outline-none focus:border-primary/50 focus:bg-white/10 hover:bg-white/10",
             "transition-all duration-300",
             className
           )}

@@ -35,7 +35,7 @@ export function RoleSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg glass border border-white/10 hover:border-primary/50 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/10 hover:border-primary/50 transition-colors"
       >
         <currentRole.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
         <span className="text-xs sm:text-sm font-medium hidden sm:inline">{currentRole.name}</span>
@@ -48,8 +48,8 @@ export function RoleSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 sm:w-44 glass-strong rounded-lg border border-white/10 py-1.5 animate-fade-in z-50">
-          <div className="px-2.5 sm:px-3 py-1.5 text-xs text-muted-foreground uppercase tracking-wider">
+        <div className="absolute right-0 mt-2 w-48 bg-[#0a0a0f] rounded-2xl border border-white/10 py-2 animate-in fade-in slide-in-from-top-2 z-50 shadow-2xl">
+          <div className="px-4 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-wider opacity-50">
             Switch Role
           </div>
           {roles.map((role) => (

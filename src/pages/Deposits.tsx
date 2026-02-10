@@ -37,7 +37,12 @@ function statusToBadge(s: string): "pending" | "completed" | "failed" {
 
 export default function Deposits() {
   const { user } = useAuth();
+  const isPlayer = user?.role === "PLAYER";
   const isAgentOrStaff = ["AGENT", "STAFF", "SUPPORT", "ADMIN"].includes(user?.role || "");
+  const isStaff = user?.role === "STAFF" || user?.role === "SUPPORT";
+  const isAgent = user?.role === "AGENT";
+  const isAdmin = user?.role === "ADMIN";
+  const isMaster = isAdmin;
   
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
@@ -122,11 +127,12 @@ export default function Deposits() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">Deposits</h1>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Deposit</h1>
+
             {isAgentOrStaff && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">
                 <MapPin className="w-3 h-3" />
-                {user?.role === "ADMIN" ? "Global Access" : user?.location || "Main Branch"}
+                {isAdmin ? "Master Access" : (isAgent ? "Agent Node" : (isStaff ? "Staff Processing" : (user?.location || "Main Branch")))}
               </div>
             )}
           </div>
@@ -149,7 +155,7 @@ export default function Deposits() {
 
       {/* Top Stats Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass group p-6 relative overflow-hidden transition-all hover:bg-white/[0.04]">
+        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 group relative overflow-hidden transition-all hover:border-white/10">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[80px] -z-10 group-hover:bg-primary/20 transition-all duration-500" />
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:border-primary/40 transition-colors">
@@ -166,7 +172,7 @@ export default function Deposits() {
           </div>
         </div>
 
-        <div className="glass group p-6 relative overflow-hidden transition-all hover:bg-white/[0.04]">
+        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 group relative overflow-hidden transition-all hover:border-white/10">
           <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 blur-[80px] -z-10 group-hover:bg-accent/20 transition-all duration-500" />
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20">
@@ -181,7 +187,7 @@ export default function Deposits() {
           </div>
         </div>
 
-        <div className="glass group p-6 relative overflow-hidden transition-all hover:bg-white/[0.04]">
+        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 group relative overflow-hidden transition-all hover:border-white/10">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[80px] -z-10 group-hover:bg-white/10 transition-all duration-500" />
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
@@ -197,7 +203,7 @@ export default function Deposits() {
       </div>
 
       {/* Main Table Section */}
-      <div className="glass border-white/5 flex flex-col min-h-[600px] overflow-hidden">
+      <div className="bg-white/[0.02] border border-white/5 rounded-3xl flex flex-col min-h-[600px] overflow-hidden">
         {/* Table Header Filter Bar */}
         <div className="p-6 border-b border-white/5 bg-white/[0.01] flex flex-col lg:row sm:flex-row sm:items-center justify-between gap-6">
           <div>
@@ -357,9 +363,9 @@ export default function Deposits() {
                     </td>
 
                     <td className="py-6 px-6 text-right">
-                      {o.status === "PENDING" ? (
+                      {o.status === "PENDING" || o.status === "SUCCESS" ? (
                         <div className="flex flex-col sm:flex-row items-center justify-end gap-2 ml-auto">
-                           {o.paymentLink && (
+                           {o.status === "PENDING" && o.paymentLink && (
                             <button 
                               onClick={() => window.open(o.paymentLink!, "_blank", "noopener,noreferrer")}
                               className="px-3 h-8 rounded-lg bg-primary text-black hover:bg-primary-foreground transition-all flex items-center gap-2 group/btn whitespace-nowrap"
@@ -374,7 +380,9 @@ export default function Deposits() {
                             className="px-3 h-8 rounded-lg bg-white/5 border border-white/10 hover:bg-white/20 transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
                           >
                             {verifyingId === o._id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Activity className="w-3 h-3" />}
-                            <span className="text-[10px] font-black uppercase tracking-widest">Verify</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">
+                              {o.status === "SUCCESS" ? "Re-sync" : "Verify"}
+                            </span>
                           </button>
                         </div>
                       ) : (

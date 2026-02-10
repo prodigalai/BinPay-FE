@@ -20,9 +20,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
-        name: "Binpay",
-        short_name: "Binpay",
-        description: "Payments, deposits, withdrawals, and admin dashboard",
+        name: "Pay4Edge",
+        short_name: "Pay4Edge",
+        description: "Premium fintech payments, deposits, and management dashboard",
         theme_color: "#7c3aed",
         background_color: "#0a0612",
         display: "standalone",

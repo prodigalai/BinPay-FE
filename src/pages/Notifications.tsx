@@ -1,114 +1,64 @@
-import { useState } from "react";
-import { Bell, Check, CheckCheck, Trash2, Filter, ArrowDown, ArrowUp, AlertTriangle, UserPlus, DollarSign, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Check, CheckCheck, Trash2, Filter, AlertTriangle, UserPlus, DollarSign, Shield } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
 import { cn } from "../lib/utils";
 import { GlassSelect } from "../components/ui/glass-select";
-
-type NotificationType = "deposit" | "alert" | "user" | "security";
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-}
-
-const dummyNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "deposit",
-    title: "New Deposit Received",
-    message: "User alex_gamer deposited $500.00 via Credit Card",
-    time: "2 minutes ago",
-    read: false,
-  },
-  {
-    id: "2",
-    type: "alert",
-    title: "Dispute Opened",
-    message: "A new dispute has been filed for transaction DEP005",
-    time: "15 minutes ago",
-    read: false,
-  },
-  {
-    id: "3",
-    type: "user",
-    title: "New Player Registered",
-    message: "john_lucky has created a new account and verified their email",
-    time: "1 hour ago",
-    read: false,
-  },
-  {
-    id: "4",
-    type: "security",
-    title: "Security Alert",
-    message: "Multiple failed login attempts detected from IP 192.168.1.100",
-    time: "2 hours ago",
-    read: true,
-  },
-  {
-    id: "5",
-    type: "deposit",
-    title: "Large Deposit Processed",
-    message: "VIP user emma_vip deposited $5,000.00 via Bank Transfer",
-    time: "3 hours ago",
-    read: true,
-  },
-  {
-    id: "6",
-    type: "alert",
-    title: "Withdrawal Pending Approval",
-    message: "User mike_pro requested withdrawal of $2,500.00",
-    time: "4 hours ago",
-    read: true,
-  },
-  {
-    id: "7",
-    type: "user",
-    title: "KYC Verification Complete",
-    message: "User sarah_bet has completed KYC verification successfully",
-    time: "5 hours ago",
-    read: true,
-  },
-  {
-    id: "8",
-    type: "security",
-    title: "Password Changed",
-    message: "Staff member John updated their password",
-    time: "1 day ago",
-    read: true,
-  },
-];
+import { api, type Notification, type NotificationsResponse } from "../lib/api";
 
 const filterOptions = [
   { value: "all", label: "All Notifications" },
   { value: "unread", label: "Unread" },
-  { value: "deposit", label: "Deposits" },
-  { value: "alert", label: "Alerts" },
-  { value: "user", label: "Users" },
-  { value: "security", label: "Security" },
+  { value: "DEPOSIT", label: "Deposits" },
+  { value: "ALERT", label: "Alerts" },
+  { value: "USER", label: "Users" },
+  { value: "SECURITY", label: "Security" },
 ];
 
-const typeIcons: Record<NotificationType, React.ElementType> = {
-  deposit: DollarSign,
-  alert: AlertTriangle,
-  user: UserPlus,
-  security: Shield,
+const typeIcons: Record<string, React.ElementType> = {
+  DEPOSIT: DollarSign,
+  ALERT: AlertTriangle,
+  USER: UserPlus,
+  SECURITY: Shield,
 };
 
-const typeColors: Record<NotificationType, string> = {
-  deposit: "from-primary to-accent",
-  alert: "from-yellow-500 to-orange-500",
-  user: "from-blue-500 to-cyan-500",
-  security: "from-red-500 to-pink-500",
+const typeColors: Record<string, string> = {
+  DEPOSIT: "from-primary to-accent",
+  ALERT: "from-yellow-500 to-orange-500",
+  USER: "from-blue-500 to-cyan-500",
+  SECURITY: "from-red-500 to-pink-500",
 };
+
+function formatTime(d: string) {
+  const date = new Date(d);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return date.toLocaleDateString();
+}
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(dummyNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get<NotificationsResponse>("notifications");
+      if (res.success) setNotifications(res.notifications);
+    } catch {
+      toast({ title: "Failed to load notifications", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -118,40 +68,46 @@ export default function Notifications() {
     return n.type === filter;
   });
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    toast({
-      title: "Marked as read",
-      description: "Notification has been marked as read.",
-    });
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await api.put(`notifications/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+      );
+      toast({ title: "Marked as read" });
+    } catch {
+      toast({ title: "Failed to update", variant: "destructive" });
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    toast({
-      title: "All marked as read",
-      description: "All notifications have been marked as read.",
-    });
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.put("notifications/read-all");
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      toast({ title: "All marked as read" });
+    } catch {
+      toast({ title: "Failed to update", variant: "destructive" });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    toast({
-      title: "Notification deleted",
-      description: "Notification has been removed.",
-      variant: "destructive",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`notifications/${id}`);
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+      toast({ title: "Notification deleted", variant: "destructive" });
+    } catch {
+      toast({ title: "Failed to delete", variant: "destructive" });
+    }
   };
 
-  const handleClearAll = () => {
-    setNotifications([]);
-    toast({
-      title: "All cleared",
-      description: "All notifications have been removed.",
-      variant: "destructive",
-    });
+  const handleClearAll = async () => {
+    try {
+      await api.delete("notifications/all");
+      setNotifications([]);
+      toast({ title: "All cleared", variant: "destructive" });
+    } catch {
+      toast({ title: "Failed to clear", variant: "destructive" });
+    }
   };
 
   return (
@@ -159,9 +115,9 @@ export default function Notifications() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground text-sm sm:text-base mt-1">
-            You have {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Notifications</h1>
+          <p className="text-sm text-muted-foreground mt-2 font-medium">
+            You have <span className="text-white font-bold">{unreadCount}</span> unread notification{unreadCount !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex gap-2">
@@ -199,13 +155,15 @@ export default function Notifications() {
 
       {/* Notifications List */}
       <div className="space-y-3">
-        {filteredNotifications.length === 0 ? (
-          <div className="glass gradient-border rounded-lg p-8 sm:p-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <Bell className="w-8 h-8 text-primary" />
+        {loading ? (
+          <p className="py-10 text-center text-muted-foreground animate-pulse">Loading alerts...</p>
+        ) : filteredNotifications.length === 0 ? (
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-12 text-center flex flex-col items-center">
+            <div className="w-16 h-16 mb-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <Bell className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No Notifications</h3>
-            <p className="text-muted-foreground text-sm">
+            <h3 className="text-lg font-bold text-white uppercase italic tracking-tight mb-2">No Notifications</h3>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
               {filter === "all"
                 ? "You're all caught up! No notifications to display."
                 : "No notifications match the selected filter."}
@@ -213,20 +171,20 @@ export default function Notifications() {
           </div>
         ) : (
           filteredNotifications.map((notification) => {
-            const Icon = typeIcons[notification.type];
+            const Icon = typeIcons[notification.type] || Bell;
             return (
               <div
-                key={notification.id}
+                key={notification._id}
                 className={cn(
-                  "glass gradient-border rounded-lg p-4 transition-all duration-300 hover:bg-white/5",
-                  !notification.read && "border-l-2 border-l-primary"
+                  "bg-white/[0.02] border border-white/5 rounded-2xl p-5 transition-all duration-300 hover:bg-white/[0.04] hover:border-white/10 group",
+                  !notification.read && "border-l-2 border-l-primary bg-white/[0.04]"
                 )}
               >
                 <div className="flex items-start gap-4">
                   <div
                     className={cn(
                       "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center flex-shrink-0",
-                      typeColors[notification.type]
+                      typeColors[notification.type] || "bg-primary"
                     )}
                   >
                     <Icon className="w-5 h-5 text-white" />
@@ -247,7 +205,7 @@ export default function Notifications() {
                           {notification.message}
                         </p>
                         <p className="text-xs text-muted-foreground/70 mt-2">
-                          {notification.time}
+                          {formatTime(notification.createdAt)}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
@@ -255,7 +213,7 @@ export default function Notifications() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleMarkAsRead(notification.id)}
+                            onClick={() => handleMarkAsRead(notification._id)}
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
                           >
                             <Check className="w-4 h-4" />
@@ -264,7 +222,7 @@ export default function Notifications() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(notification.id)}
+                          onClick={() => handleDelete(notification._id)}
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="w-4 h-4" />

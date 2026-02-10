@@ -38,13 +38,10 @@ export default function Login() {
       <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-background/90" />
         <div className="relative z-10 p-12 max-w-lg text-center">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto shadow-2xl shadow-primary/30 mb-6 p-1">
-            <img src="/logo.png" alt="Pay4Edge" className="w-full h-full object-contain rounded-xl" />
+          <div className="h-32 sm:h-40 flex items-center justify-center mx-auto mb-8 animate-float">
+            <img src="/logo.png" alt="Pay4Edge" className="h-full w-auto object-contain drop-shadow-[0_0_30px_rgba(16,185,129,0.3)]" />
           </div>
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-4">
-            Pay4Edge
-          </h1>
-          <p className="text-xl text-white/70 font-light">Payments, deposits, withdrawals & admin.</p>
+          <p className="text-xl text-white/70 font-light max-w-sm mx-auto">Unified payments, deposits, withdrawals & management dashboard.</p>
         </div>
       </div>
 
@@ -66,7 +63,7 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   required
-                  className="w-full h-12 pl-12 pr-4 bg-background/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full h-12 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all text-white placeholder:text-muted-foreground/50"
                 />
               </div>
             </div>
@@ -80,7 +77,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full h-12 pl-12 pr-4 bg-background/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full h-12 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all text-white placeholder:text-muted-foreground/50"
                 />
               </div>
             </div>

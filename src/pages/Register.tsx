@@ -6,7 +6,7 @@ import { cn } from "../lib/utils";
 import { motion } from "framer-motion";
 
 const roles: { value: UserRole; label: string; icon: React.ElementType }[] = [
-  { value: "ADMIN", label: "Admin", icon: Shield },
+  { value: "ADMIN", label: "Master", icon: Shield },
   { value: "AGENT", label: "Agent", icon: Users },
   { value: "STAFF", label: "Staff", icon: UserCog },
 ];
@@ -49,13 +49,10 @@ export default function Register() {
       <div className="hidden lg:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-background/90" />
         <div className="relative z-10 p-12 max-w-lg text-center">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto shadow-2xl shadow-primary/30 mb-6 p-1">
-            <img src="/logo.png" alt="Binpay" className="w-full h-full object-contain rounded-xl" />
+          <div className="h-32 sm:h-40 flex items-center justify-center mx-auto mb-8 animate-float">
+            <img src="/logo.png" alt="Pay4Edge" className="h-full w-auto object-contain drop-shadow-[0_0_30px_rgba(16,185,129,0.3)]" />
           </div>
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-4">
-            Binpay
-          </h1>
-          <p className="text-xl text-white/70 font-light">Join the future of payments & management.</p>
+          <p className="text-xl text-white/70 font-light max-w-sm mx-auto">Premium decentralized payments & management platform.</p>
         </div>
       </div>
 
@@ -78,7 +75,7 @@ export default function Register() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
-                  className="w-full h-12 pl-12 pr-4 bg-background/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full h-12 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all text-white placeholder:text-muted-foreground/50"
                 />
               </div>
             </div>
@@ -93,7 +90,7 @@ export default function Register() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   required
-                  className="w-full h-12 pl-12 pr-4 bg-background/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full h-12 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all text-white placeholder:text-muted-foreground/50"
                 />
               </div>
             </div>
@@ -109,7 +106,7 @@ export default function Register() {
                   placeholder="••••••••"
                   required
                   minLength={6}
-                  className="w-full h-12 pl-12 pr-12 bg-background/50 border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full h-12 pl-12 pr-12 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all text-white placeholder:text-muted-foreground/50"
                 />
                 <button
                   type="button"
@@ -123,7 +120,7 @@ export default function Register() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium block">Select Role</label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {roles.map((r) => (
                   <button
                     key={r.value}
@@ -133,7 +130,7 @@ export default function Register() {
                       "flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-200",
                       role === r.value 
                         ? "border-primary bg-primary/10 text-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]" 
-                        : "border-input bg-background/50 hover:bg-white/5 hover:border-white/20"
+                        : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-muted-foreground hover:text-white"
                     )}
                   >
                     <div className={cn("p-2 rounded-lg", role === r.value ? "bg-primary/20" : "bg-white/5")}>

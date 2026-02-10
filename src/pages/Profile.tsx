@@ -16,14 +16,14 @@ export default function Profile() {
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Profile</h1>
-        <p className="text-muted-foreground text-sm sm:text-base mt-1">Manage your account information</p>
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Profile</h1>
+        <p className="text-sm text-muted-foreground mt-2 font-medium">Manage your personal account details</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Profile Card */}
         <div className="lg:col-span-1">
-          <div className="glass gradient-border rounded-lg p-4 sm:p-6 text-center">
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8 text-center flex flex-col items-center">
             <div className="relative inline-block">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto glow-primary">
                 <span className="text-white text-2xl sm:text-3xl font-bold">{user?.name?.charAt(0) || "U"}</span>
@@ -53,58 +53,60 @@ export default function Profile() {
         {/* Details */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Personal Information */}
-          <div className="glass gradient-border rounded-lg p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Personal Information</h3>
+          {/* Personal Information */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-white uppercase italic tracking-tight mb-6">Personal Information</h3>
             
-            <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider">Full Name</label>
-                <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 glass rounded-lg">
+            <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Full Name</label>
+                <div className="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
                   <User className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">{user?.name || "User"}</span>
+                  <span className="text-sm font-bold text-white truncate">{user?.name || "User"}</span>
                 </div>
               </div>
               
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider">Email</label>
-                <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 glass rounded-lg">
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Email</label>
+                <div className="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
                   <Mail className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-xs sm:text-sm truncate">{user?.email}</span>
+                  <span className="text-sm font-bold text-white truncate">{user?.email}</span>
                 </div>
               </div>
               
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider">Role</label>
-                <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 glass rounded-lg">
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Role</label>
+                <div className="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
                   <Shield className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">{roleName}</span>
+                  <span className="text-sm font-bold text-white">{roleName}</span>
                 </div>
               </div>
               
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground uppercase tracking-wider">Member Since</label>
-                <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 glass rounded-lg">
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Member Since</label>
+                <div className="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
                   <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">January 15, 2024</span>
+                  <span className="text-sm font-bold text-white">January 15, 2024</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Activity */}
-          <div className="glass gradient-border rounded-lg p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Recent Activity</h3>
+          {/* Activity */}
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-white uppercase italic tracking-tight mb-6">Recent Activity</h3>
             
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-3">
               {[
                 { action: "Approved withdrawal #1234", time: "2 hours ago" },
                 { action: "Added new staff member", time: "5 hours ago" },
                 { action: "Updated deposit settings", time: "1 day ago" },
                 { action: "Resolved dispute #5678", time: "2 days ago" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-2.5 sm:p-3 glass rounded-lg">
-                  <span className="text-xs sm:text-sm truncate mr-2">{item.action}</span>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">{item.time}</span>
+                <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/5 transition-colors">
+                  <span className="text-xs sm:text-sm font-medium text-white/90 truncate mr-2">{item.action}</span>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap font-mono">{item.time}</span>
                 </div>
               ))}
             </div>

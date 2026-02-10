@@ -28,15 +28,15 @@ interface SettingsSectionProps {
 
 function SettingsSection({ icon: Icon, title, description, children }: SettingsSectionProps) {
   return (
-    <div className="glass rounded-lg p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
-          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+    <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8 hover:border-white/10 transition-colors">
+      <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-6">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 border border-primary/20">
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
         </div>
         <div className="flex-1 w-full">
-          <h3 className="text-base sm:text-lg font-semibold">{title}</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{description}</p>
-          <div className="mt-3 sm:mt-4">{children}</div>
+          <h3 className="text-lg sm:text-xl font-bold text-white uppercase italic tracking-tight">{title}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 mb-4">{description}</p>
+          <div className="mt-2 text-sm">{children}</div>
         </div>
       </div>
     </div>
@@ -136,7 +136,7 @@ export default function Settings() {
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Header */}
-      <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
+      <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Settings</h1>
 
       <div className="grid gap-6 w-full lg:grid-cols-2">
         {/* Notifications */}
@@ -240,22 +240,22 @@ export default function Settings() {
           description="Your account details"
         >
           <div className="space-y-3">
-            <div className="p-2.5 sm:p-3 glass rounded-lg">
-              <p className="text-xs text-muted-foreground mb-0.5">Name</p>
-              <p className="text-xs sm:text-sm font-medium">{user?.name || "—"}</p>
+            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-center">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Name</p>
+              <p className="text-sm font-bold text-white">{user?.name || "—"}</p>
             </div>
-            <div className="p-2.5 sm:p-3 glass rounded-lg">
-              <p className="text-xs text-muted-foreground mb-0.5">Email</p>
-              <p className="text-xs sm:text-sm font-medium">{user?.email || "—"}</p>
+            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-center">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Email</p>
+              <p className="text-sm font-bold text-white">{user?.email || "—"}</p>
             </div>
-            <div className="p-2.5 sm:p-3 glass rounded-lg">
-              <p className="text-xs text-muted-foreground mb-0.5">Role</p>
-              <p className="text-xs sm:text-sm font-medium">{user?.role || "—"}</p>
+            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-center">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Role</p>
+              <p className="text-sm font-bold text-white">{user?.role || "—"}</p>
             </div>
             {user?.location && (
-              <div className="p-2.5 sm:p-3 glass rounded-lg">
-                <p className="text-xs text-muted-foreground mb-0.5">Location</p>
-                <p className="text-xs sm:text-sm font-medium">{user.location}</p>
+              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col justify-center">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 font-bold">Location</p>
+                <p className="text-sm font-bold text-white">{user.location}</p>
               </div>
             )}
           </div>

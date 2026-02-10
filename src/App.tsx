@@ -22,9 +22,11 @@ import Withdrawals from "./pages/Withdrawals";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Terms from "./pages/Terms";
+import Logs from "./pages/Logs";
 import NotFound from "./pages/NotFound";
 
 import PaymentPage from "./pages/PaymentPage";
+import GeneratedLinks from "./pages/GeneratedLinks";
 
 const queryClient = new QueryClient();
 
@@ -57,14 +59,16 @@ function AnimatedRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/players" element={<RoleRoute allowedRoles={["ADMIN", "STAFF"]}><Players /></RoleRoute>} />
-        <Route path="/deposits" element={<ProtectedRoute><Deposits /></ProtectedRoute>} />
+        <Route path="/deposits" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "PLAYER"]}><Deposits /></RoleRoute>} />
         <Route path="/staff" element={<RoleRoute allowedRoles={["ADMIN", "AGENT"]}><Staff /></RoleRoute>} />
         <Route path="/disputes" element={<ProtectedRoute><Disputes /></ProtectedRoute>} />
         <Route path="/disputes/:id" element={<ProtectedRoute><DisputeDetail /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/withdrawals" element={<ProtectedRoute><Withdrawals /></ProtectedRoute>} />
+        <Route path="/withdrawals" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "PLAYER"]}><Withdrawals /></RoleRoute>} />
+        <Route path="/logs" element={<RoleRoute allowedRoles={["ADMIN"]}><Logs /></RoleRoute>} />
+        <Route path="/generated-links" element={<RoleRoute allowedRoles={["STAFF", "SUPPORT"]}><GeneratedLinks /></RoleRoute>} />
         <Route path="/pay/:id" element={<PaymentPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

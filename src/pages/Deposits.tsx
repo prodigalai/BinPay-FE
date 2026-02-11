@@ -53,8 +53,8 @@ export default function Deposits() {
   const [searchQuery, setSearchQuery] = useState("");
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const [ordersRes, balanceRes] = await Promise.all([
         api.get<OrdersResponse>("payments", { params: filter !== "all" ? { status: filter } : {} }).catch(() => ({ success: false, orders: [], total: 0 })),
@@ -67,7 +67,7 @@ export default function Deposits() {
       }
       if (balanceRes.success) setBalance(balanceRes.balance);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -81,7 +81,7 @@ export default function Deposits() {
         const interval = setInterval(() => {
             // Only fetch if tab is active to save resources
             if (document.visibilityState === 'visible') {
-                fetchData();
+                fetchData(true);
             }
         }, 10000);
         return () => clearInterval(interval);

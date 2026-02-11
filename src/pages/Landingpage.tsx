@@ -100,7 +100,7 @@ export default function Landing() {
 
         {/* Logo - Left */}
         <div className="flex items-center gap-3 min-w-0 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="h-50 md:h-12 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="h-10 md:h-12 flex items-center justify-center shrink-0">
             <img src="/navlogo.png" alt="Pay4Edge Logo" className="h-full w-auto object-contain p-0.5" />
           </div>
         </div>

@@ -1,16 +1,15 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Wallet, UserCog, AlertTriangle, ArrowUpRight, Link as LinkIcon } from "lucide-react";
+import { LayoutDashboard, Wallet, UserCog, ArrowUpRight, Link as LinkIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../contexts/AuthContext";
 
+// Disputes & Players in profile dropdown on mobile to save bottom nav space
 const navItems = [
   { name: "Home", path: "/dashboard", icon: LayoutDashboard },
-  { name: "Players", path: "/players", icon: Users, roles: ["ADMIN", "STAFF"] },
   { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
   { name: "Generated", path: "/generated-links", icon: LinkIcon, roles: ["STAFF", "SUPPORT"] },
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
   { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "AGENT", "PLAYER"] },
-  { name: "Disputes", path: "/disputes", icon: AlertTriangle, roles: ["ADMIN", "AGENT", "PLAYER", "SUPPORT"] },
 ];
 
 export function BottomNav() {
@@ -23,7 +22,7 @@ export function BottomNav() {
   });
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/90 backdrop-blur-xl border-t border-white/5 safe-area-bottom pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/90 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16 px-2">
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path;

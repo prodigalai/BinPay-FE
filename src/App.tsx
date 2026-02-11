@@ -92,7 +92,7 @@ function AppRoutes() {
       {!isPublicPage && isAuthenticated && <Navbar />}
       {!isPublicPage && isAuthenticated && <BottomNav />}
       {isAuthenticated && <SwipeHandler />}
-      <main className={isAuthenticated ? "relative pt-16 sm:pt-20 pb-20 md:pb-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto" : ""}>
+      <main className={isAuthenticated ? "relative pt-20 sm:pt-24 md:pt-20 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-[100dvh]" : ""}>
         <AnimatedRoutes />
       </main>
     </div>

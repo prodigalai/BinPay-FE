@@ -199,21 +199,20 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in pb-10">
-      {/* Header Section */}
+    <div className="space-y-8 animate-fade-in pb-10 pt-2 sm:pt-0">
+      {/* Header Section — extra top space so title/chip don't feel cramped under navbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Dashboard</h1>
-
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Dashboard</h1>
             {isAgentOrStaff && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-[10px] font-black uppercase tracking-widest text-primary">
-                <MapPin className="w-3 h-3" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-[10px] font-black uppercase tracking-widest text-primary w-fit">
+                <MapPin className="w-3 h-3 shrink-0" />
                 {isAdmin ? "Master Ecosystem" : (isAgent ? "Agent Node" : (isStaff ? "Staff View" : (user?.location || "Main Office")))}
               </div>
             )}
           </div>
-          <p className="text-muted-foreground text-sm sm:text-base mt-2">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Welcome back, <span className="text-white font-bold">{user?.name}</span>! Ready for today's operations?
           </p>
         </div>

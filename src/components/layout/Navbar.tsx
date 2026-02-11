@@ -126,21 +126,41 @@ export function Navbar() {
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-[#0a0a0f] border border-white/10 rounded-2xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute right-0 mt-3 w-56 bg-[#0a0a0f] border border-white/10 rounded-2xl shadow-2xl py-2 animate-in fade-in slide-in-from-top-2 z-[60]">
                     <NavLink 
                       to="/profile" 
                       onClick={() => setIsProfileOpen(false)}
-                      className="block px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-white/5 transition-colors"
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-white/5 transition-colors"
                     >
                       Profile
                     </NavLink>
                     <NavLink 
                       to="/settings" 
                       onClick={() => setIsProfileOpen(false)}
-                      className="block px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-white/5 transition-colors"
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-white/5 transition-colors"
                     >
                       Settings
                     </NavLink>
+                    {user?.role && ["ADMIN", "STAFF"].includes(user.role) && (
+                      <NavLink 
+                        to="/players" 
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-white/5 transition-colors"
+                      >
+                        <Users className="w-4 h-4 text-primary shrink-0" />
+                        Players
+                      </NavLink>
+                    )}
+                    {user?.role && ["ADMIN", "AGENT", "SUPPORT", "PLAYER"].includes(user.role) && (
+                      <NavLink 
+                        to="/disputes" 
+                        onClick={() => setIsProfileOpen(false)}
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-white/5 transition-colors"
+                      >
+                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                        Disputes
+                      </NavLink>
+                    )}
                     <hr className="my-1.5 border-white/10" />
                     <button 
                       onClick={() => {

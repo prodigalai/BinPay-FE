@@ -350,7 +350,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1 group/input">
+                        <div className="relative flex-1 group/input min-w-0">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg group-focus-within:text-primary transition-colors">$</span>
                             <input 
                                 autoFocus
@@ -364,7 +364,7 @@ export default function Dashboard() {
                         <button 
                             onClick={handleGenerateLink}
                             disabled={generating}
-                            className="h-14 px-8 rounded-xl bg-primary text-black text-sm font-black uppercase tracking-widest hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                            className="h-14 w-full sm:w-auto sm:min-w-[140px] px-8 rounded-xl bg-primary text-black text-sm font-black uppercase tracking-widest hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                         >
                             {generating ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -378,40 +378,60 @@ export default function Dashboard() {
                     </div>
 
                     {(generatedLink || generatedQR) && (
-                        <div className="mt-8 animate-in slide-in-from-top-4 fade-in duration-500 border-t border-white/5 pt-6">
+                        <div className="mt-6 sm:mt-8 animate-in slide-in-from-top-4 fade-in duration-500 border-t border-white/5 pt-6">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-4">Ready to share</p>
+                            {/* Mobile: QR first, then link + actions. Desktop: side by side */}
                             <div className="flex flex-col md:flex-row gap-6">
-                                <div className="flex-1 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Checkout Link</span>
-                                        <span className="text-[10px] font-bold text-emerald-500">Ready to share</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 font-mono text-xs text-white/80 truncate">
-                                            {generatedLink}
+                                {/* QR — larger on mobile for easy scanning */}
+                                {generatedQR && (
+                                    <div className="flex flex-col items-center gap-2 order-first md:order-2">
+                                        <div className="flex items-center justify-center bg-white p-3 rounded-2xl shadow-lg">
+                                            <img src={generatedQR} alt="Scan to pay" className="w-[200px] h-[200px] sm:w-28 sm:h-28 md:w-24 md:h-24 object-contain" />
                                         </div>
+                                        <a
+                                            href={generatedQR}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs font-bold text-muted-foreground hover:text-white transition-colors"
+                                        >
+                                            Save QR
+                                        </a>
+                                    </div>
+                                )}
+                                <div className="flex-1 space-y-3 order-2 md:order-1 min-w-0">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Checkout Link</span>
+                                    <div className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 font-mono text-xs text-white/80 break-all">
+                                        {generatedLink}
+                                    </div>
+                                    {/* Copy + Share — mobile: native share sheet / desktop: WhatsApp Web */}
+                                    <div className="flex flex-col sm:flex-row gap-3">
                                         <button 
                                             onClick={() => copyToClipboard(generatedLink!)} 
-                                            className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                                            className="h-12 flex-1 rounded-xl bg-primary text-black text-sm font-black uppercase tracking-widest hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 min-h-[48px]"
                                         >
-                                            <Copy className="w-4 h-4 text-white" />
+                                            <Copy className="w-5 h-5 shrink-0" />
+                                            Copy Link
                                         </button>
-                                    </div>
-                                    <div className="flex gap-2">
                                         <button 
                                             onClick={() => {
-                                                if (generatedLink && navigator.share) {
-                                                    navigator.share({ title: 'Pay4Edge Payment', url: generatedLink });
+                                                if (!generatedLink) return;
+                                                if (typeof navigator !== 'undefined' && navigator.share) {
+                                                    navigator.share({ title: 'Pay4Edge Payment', url: generatedLink, text: 'Pay with this link: ' })
+                                                        .then(() => toast({ title: 'Shared', description: 'Link shared successfully.' }))
+                                                        .catch((e) => { if (e?.name !== 'AbortError') copyToClipboard(generatedLink); });
+                                                } else {
+                                                    copyToClipboard(generatedLink);
+                                                    const waUrl = `https://wa.me/?text=${encodeURIComponent('Pay with this link: ' + generatedLink)}`;
+                                                    window.open(waUrl, '_blank', 'noopener,noreferrer');
+                                                    toast({ title: 'Link copied', description: 'WhatsApp Web opened — send to share.' });
                                                 }
                                             }}
-                                            className="flex-1 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white transition-colors flex items-center justify-center gap-2"
+                                            className="h-12 flex-1 rounded-xl bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-400 text-sm font-black uppercase tracking-widest hover:bg-emerald-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 min-h-[48px]"
                                         >
-                                            <Share2 className="w-3 h-3" />
-                                            Share
+                                            <Share2 className="w-5 h-5 shrink-0" />
+                                            Share (WhatsApp / Apps)
                                         </button>
                                     </div>
-                                </div>
-                                <div className="flex items-center justify-center bg-white p-3 rounded-xl">
-                                    <img src={generatedQR!} alt="QR" className="w-24 h-24 object-contain" />
                                 </div>
                             </div>
                         </div>

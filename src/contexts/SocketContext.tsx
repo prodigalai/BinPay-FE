@@ -17,8 +17,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize audio - using a cleaner success chime
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+    // Initialize audio - using 'positive-notification-951'
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');
     audioRef.current.load();
   }, []);
 

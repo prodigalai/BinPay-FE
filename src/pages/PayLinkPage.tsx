@@ -110,17 +110,17 @@ export default function PayLinkPage() {
     : (details.amountCharged || details.amount + feeAmount);
 
   return (
-    <div className="min-h-[90vh] h-[90vh] text-white flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] text-white flex items-center justify-center p-4 sm:p-6 py-6 sm:py-8 relative overflow-y-auto overflow-x-hidden">
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent/8 rounded-full blur-[150px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] sm:w-[50%] h-[40%] sm:h-[50%] bg-primary/8 rounded-full blur-[120px] sm:blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[70%] sm:w-[50%] h-[40%] sm:h-[50%] bg-accent/8 rounded-full blur-[120px] sm:blur-[150px]" />
       </div>
 
-      <div className="w-full max-w-[960px] animate-in fade-in zoom-in-95 duration-500 relative z-10">
-        <div className="glass-strong rounded-2xl lg:rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)]">
+      <div className="w-full max-w-[960px] animate-in fade-in zoom-in-95 duration-500 relative z-10 my-auto">
+        <div className="glass-strong rounded-xl sm:rounded-2xl lg:rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)]">
           
-          {/* Two-Column Layout */}
+          {/* Two-Column Layout — stacks on mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 min-h-0">
             
             {/* LEFT — Payment Info */}
@@ -135,12 +135,12 @@ export default function PayLinkPage() {
                 </div>
 
                 {/* Amount */}
-                <p className="text-[8px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">
+                <p className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">
                   {details.customAmount ? "You choose the amount" : "You are paying"}
                 </p>
-                <div className="flex items-baseline gap-1 mb-3 sm:mb-4">
-                  <span className="text-sm sm:text-lg font-black text-primary/50">$</span>
-                  <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-black text-white tracking-tighter italic">
+                <div className="flex items-baseline gap-1 mb-3 sm:mb-4 flex-wrap">
+                  <span className="text-base sm:text-lg font-black text-primary/50">$</span>
+                  <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-black text-white tracking-tighter italic break-all">
                     {details.customAmount ? (displayAmount > 0 ? displayAmount.toFixed(2) : "—") : details.amount.toFixed(2)}
                   </h1>
                   <span className="text-[10px] sm:text-xs font-bold text-muted-foreground ml-1 uppercase">{details.currency || 'USD'}</span>
@@ -148,20 +148,20 @@ export default function PayLinkPage() {
 
                 {/* Fee Breakdown */}
                 <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
-                  <div className="flex justify-between text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <span className="flex items-center gap-1"><DollarSign className="w-2.5 h-2.5" /> Base Amount</span>
-                    <span className="text-white">${displayAmount > 0 ? displayAmount.toFixed(2) : (details.customAmount ? "—" : details.amount.toFixed(2))}</span>
+                  <div className="flex justify-between text-[10px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <span className="flex items-center gap-1"><DollarSign className="w-2.5 h-2.5 shrink-0" /> Base Amount</span>
+                    <span className="text-white truncate ml-2">${displayAmount > 0 ? displayAmount.toFixed(2) : (details.customAmount ? "—" : details.amount.toFixed(2))}</span>
                   </div>
                   {details.feePercent > 0 && (
-                    <div className="flex justify-between text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="flex justify-between text-[10px] sm:text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                       <span>Gateway Fee ({details.feePercent}%)</span>
                       <span className="text-accent">+${feeAmount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="h-px bg-white/5" />
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center gap-2">
                     <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-widest">Total</span>
-                    <span className="text-lg sm:text-xl font-black text-primary italic">${displayAmount > 0 ? totalToPay.toFixed(2) : (details.customAmount ? "—" : totalToPay.toFixed(2))}</span>
+                    <span className="text-base sm:text-xl font-black text-primary italic truncate">${displayAmount > 0 ? totalToPay.toFixed(2) : (details.customAmount ? "—" : totalToPay.toFixed(2))}</span>
                   </div>
                 </div>
               </div>
@@ -169,25 +169,25 @@ export default function PayLinkPage() {
               {/* Bottom Info */}
               <div className="relative space-y-2 sm:space-y-3">
                 {/* Merchant */}
-                <div className="flex items-center gap-2 p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                  <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
-                    <UserIcon className="w-3 h-3 text-white/40" />
+                <div className="flex items-center gap-2 p-2.5 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
+                    <UserIcon className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-white/40" />
                   </div>
-                  <div>
-                    <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-0.5">Payment To</p>
-                    <p className="text-xs sm:text-sm font-bold text-white uppercase italic">{details.agentName || "Trusted Merchant"}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-0.5">Payment To</p>
+                    <p className="text-xs sm:text-sm font-bold text-white uppercase italic truncate">{details.agentName || "Trusted Merchant"}</p>
                   </div>
                 </div>
 
                 {/* Trust indicators */}
-                <div className="grid grid-cols-2 gap-1.5">
-                  <div className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-lg bg-white/[0.02] border border-white/5">
-                    <Lock className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
-                    <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-wider">256-bit SSL</span>
+                <div className="grid grid-cols-2 gap-2 sm:gap-1.5">
+                  <div className="flex items-center gap-1.5 p-2 sm:p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                    <Lock className="w-3 h-3 sm:w-2.5 sm:h-2.5 text-emerald-500 shrink-0" />
+                    <span className="text-[9px] sm:text-[7px] font-bold text-muted-foreground uppercase tracking-wider">256-bit SSL</span>
                   </div>
-                  <div className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-lg bg-white/[0.02] border border-white/5">
-                    <Clock className="w-2.5 h-2.5 text-primary shrink-0" />
-                    <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-wider">Instant Credit</span>
+                  <div className="flex items-center gap-1.5 p-2 sm:p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                    <Clock className="w-3 h-3 sm:w-2.5 sm:h-2.5 text-primary shrink-0" />
+                    <span className="text-[9px] sm:text-[7px] font-bold text-muted-foreground uppercase tracking-wider">Instant Credit</span>
                   </div>
                 </div>
 
@@ -202,15 +202,15 @@ export default function PayLinkPage() {
             {/* RIGHT — Form */}
             <div className="p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
               <form onSubmit={handlePay} className="space-y-3 sm:space-y-4">
-                <h2 className="text-sm sm:text-base font-black uppercase italic tracking-tight text-white">Enter Your Details</h2>
-                <p className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Fill in to proceed with payment</p>
+                <h2 className="text-lg sm:text-base font-black uppercase italic tracking-tight text-white">Enter Your Details</h2>
+                <p className="text-[10px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Fill in to proceed with payment</p>
 
                 {/* Amount (only for custom amount links) */}
                 {details.customAmount && (
                   <div className="space-y-1">
-                    <label className="text-[8px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1 block">Amount (USD)</label>
+                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1 block">Amount (USD)</label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none">
                         <DollarSign className="w-4 h-4" />
                       </div>
                       <input
@@ -221,7 +221,9 @@ export default function PayLinkPage() {
                         placeholder="0.00"
                         value={amountInput}
                         onChange={(e) => { setAmountInput(e.target.value); setErrors(prev => ({ ...prev, amount: undefined })); }}
-                        className={`w-full h-10 sm:h-11 bg-white/[0.03] border rounded-lg sm:rounded-xl pl-10 pr-3 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 ${errors.amount ? 'border-red-500/50' : 'border-white/5'}`}
+                        className={`w-full min-h-[44px] h-11 sm:h-11 bg-white/[0.03] border rounded-xl pl-10 pr-3 text-base sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 touch-manipulation ${errors.amount ? 'border-red-500/50' : 'border-white/5'}`}
+                        inputMode="decimal"
+                        autoComplete="off"
                       />
                     </div>
                     {errors.amount && (
@@ -235,15 +237,15 @@ export default function PayLinkPage() {
                 {/* Game Name */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between pl-1">
-                    <label className="text-[8px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">Platform / Game</label>
-                    <Gamepad2 className="w-2.5 h-2.5 text-muted-foreground/30" />
+                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">Platform / Game</label>
+                    <Gamepad2 className="w-2.5 h-2.5 text-muted-foreground/30 shrink-0" />
                   </div>
                   <input
                     type="text"
                     placeholder="e.g. PUBG, FREE FIRE"
                     value={gameName}
                     onChange={(e) => { setGameName(e.target.value); setErrors(prev => ({ ...prev, gameName: undefined })); }}
-                    className={`w-full h-9 sm:h-10 bg-white/[0.03] border rounded-lg sm:rounded-xl px-3 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 ${errors.gameName ? 'border-red-500/50' : 'border-white/5'}`}
+                    className={`w-full min-h-[44px] h-11 sm:h-10 bg-white/[0.03] border rounded-xl px-3 text-base sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 touch-manipulation ${errors.gameName ? 'border-red-500/50' : 'border-white/5'}`}
                     maxLength={100}
                     required
                   />
@@ -257,15 +259,15 @@ export default function PayLinkPage() {
                 {/* Username */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between pl-1">
-                    <label className="text-[8px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">Player ID / Username</label>
-                    <UserIcon className="w-2.5 h-2.5 text-muted-foreground/30" />
+                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">Player ID / Username</label>
+                    <UserIcon className="w-2.5 h-2.5 text-muted-foreground/30 shrink-0" />
                   </div>
                   <input
                     type="text"
                     placeholder="Enter your game ID"
                     value={gameUsername}
                     onChange={(e) => { setGameUsername(e.target.value); setErrors(prev => ({ ...prev, gameUsername: undefined })); }}
-                    className={`w-full h-9 sm:h-10 bg-white/[0.03] border rounded-lg sm:rounded-xl px-3 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 ${errors.gameUsername ? 'border-red-500/50' : 'border-white/5'}`}
+                    className={`w-full min-h-[44px] h-11 sm:h-10 bg-white/[0.03] border rounded-xl px-3 text-base sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 touch-manipulation ${errors.gameUsername ? 'border-red-500/50' : 'border-white/5'}`}
                     maxLength={100}
                     required
                   />
@@ -278,8 +280,8 @@ export default function PayLinkPage() {
 
                 {/* Payment Method — PayPal only */}
                 <div className="space-y-1">
-                  <label className="text-[8px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1 block">Payment Method</label>
-                  <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-[#0070ba]/10 border-2 border-[#0070ba]/40">
+                  <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1 block">Payment Method</label>
+                  <div className="flex items-center gap-3 p-3 sm:p-3 rounded-xl bg-[#0070ba]/10 border-2 border-[#0070ba]/40 min-h-[48px]">
                     <svg className="h-5 sm:h-6 w-auto shrink-0" viewBox="0 0 101 32" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12.237 2.4H4.437c-.535 0-.99.39-1.073.916L.584 21.748c-.063.39.24.742.637.742h3.72c.535 0 .99-.39 1.073-.917l.928-5.89c.084-.527.538-.917 1.074-.917h2.474c5.157 0 8.133-2.494 8.912-7.436.35-2.164.014-3.864-.998-5.053C17.27 3.108 15.07 2.4 12.237 2.4zm.905 7.322c-.428 2.81-2.577 2.81-4.656 2.81h-1.183l.83-5.254c.05-.316.326-.55.646-.55h.543c1.415 0 2.75 0 3.44.807.41.482.535 1.198.38 2.187z" fill="#253B80"/>
                       <path d="M35.768 9.64h-3.734c-.32 0-.596.234-.647.55l-.164 1.045-.262-.378c-.808-1.172-2.61-1.564-4.408-1.564-4.124 0-7.648 3.124-8.336 7.505-.358 2.186.15 4.276 1.395 5.735 1.143 1.34 2.775 1.898 4.72 1.898 3.34 0 5.19-2.147 5.19-2.147l-.166 1.04c-.063.39.238.743.636.743h3.363c.534 0 .99-.39 1.073-.917l2.018-12.768c.063-.39-.238-.742-.637-.742zm-5.228 7.264c-.36 2.135-2.058 3.567-4.227 3.567-1.088 0-1.96-.35-2.52-1.012-.555-.658-.764-1.594-.588-2.63.337-2.117 2.063-3.597 4.198-3.597 1.065 0 1.93.353 2.502 1.02.576.674.8 1.614.635 2.652z" fill="#253B80"/>
@@ -289,11 +291,11 @@ export default function PayLinkPage() {
                   </div>
                 </div>
 
-                {/* Submit */}
+                {/* Submit — 48px min height for touch */}
                 <Button 
                   type="submit" 
                   disabled={paying} 
-                  className="w-full h-10 sm:h-12 neon-button text-sm sm:text-base font-black italic uppercase tracking-wider group mt-1"
+                  className="w-full min-h-[48px] h-12 sm:h-12 neon-button text-sm sm:text-base font-black italic uppercase tracking-wider group mt-1 touch-manipulation active:scale-[0.98]"
                 >
                   {paying ? (
                     <div className="flex items-center gap-2">
@@ -308,7 +310,7 @@ export default function PayLinkPage() {
                   )}
                 </Button>
 
-                <p className="text-[6px] sm:text-[7px] text-center text-muted-foreground/30 font-bold uppercase tracking-[0.15em]">
+                <p className="text-[8px] sm:text-[7px] text-center text-muted-foreground/30 font-bold uppercase tracking-[0.15em] px-1">
                   Authorized Payment Protocol — Pay4Edge 2026
                 </p>
               </form>

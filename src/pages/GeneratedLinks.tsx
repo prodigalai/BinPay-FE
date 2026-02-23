@@ -25,6 +25,7 @@ interface StaffLink {
   amountCharged: number;
   currency: string;
   remark: string;
+  customAmount?: boolean;
   createdAt: string;
   attempts: number;
   generatedBy: { name: string; role: string } | null;
@@ -330,7 +331,11 @@ export default function GeneratedLinks() {
                         </div>
                       </td>
                       <td className="px-6 py-4 font-bold text-white">
-                        ${link.amount?.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">{link.currency}</span>
+                        {link.customAmount ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">Custom amount</span>
+                        ) : (
+                          <>${link.amount?.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">{link.currency}</span></>
+                        )}
                       </td>
                       {showAllLinks && (
                         <td className="px-6 py-4">

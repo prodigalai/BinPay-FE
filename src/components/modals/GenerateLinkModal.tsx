@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, DollarSign, Loader2, Link as LinkIcon, Copy, CheckCircle2 } from "lucide-react";
+import { X, DollarSign, Loader2, Link as LinkIcon, Copy, CheckCircle2, Edit3 } from "lucide-react";
 import { api } from "../../lib/api";
 import { toast } from "../../hooks/use-toast";
 import { Button } from "../ui/button";
@@ -8,33 +8,47 @@ import { Button } from "../ui/button";
 interface GenerateLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** When true, open with "Custom amount link" pre-selected */
+  initialCustomAmount?: boolean;
 }
 
-export function GenerateLinkModal({ isOpen, onClose }: GenerateLinkModalProps) {
+export function GenerateLinkModal({ isOpen, onClose, initialCustomAmount }: GenerateLinkModalProps) {
   const [amount, setAmount] = useState("");
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [customAmount, setCustomAmount] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setGeneratedUrl(null);
+      setAmount("");
+      setRemark("");
+      setCustomAmount(!!initialCustomAmount);
+    }
+  }, [isOpen, initialCustomAmount]);
 
   if (!isOpen) return null;
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amountNum = parseFloat(amount);
-    if (!amountNum || amountNum <= 0) {
-      toast({ title: "Invalid amount", variant: "destructive" });
-      return;
+    if (!customAmount) {
+      const amountNum = parseFloat(amount);
+      if (!amountNum || amountNum <= 0) {
+        toast({ title: "Invalid amount", variant: "destructive" });
+        return;
+      }
     }
 
     setLoading(true);
     try {
-      const res = await api.post<{ success: boolean; url: string }>("payments/generate-link", {
-        amount: amountNum,
-        remark
+      const res = await api.post<{ success: boolean; url: string; customAmount?: boolean }>("payments/generate-link", {
+        ...(customAmount ? { customAmount: true } : { amount: parseFloat(amount) }),
+        remark: customAmount ? (remark || "Custom amount — payer enters amount") : remark
       });
       if (res.success) {
         setGeneratedUrl(res.url);
-        toast({ title: "Payment link generated!" });
+        toast({ title: res.customAmount ? "Custom amount link created!" : "Payment link generated!" });
       }
     } catch (err: any) {
       toast({ title: "Generation failed", description: err.message, variant: "destructive" });
@@ -95,29 +109,45 @@ export function GenerateLinkModal({ isOpen, onClose }: GenerateLinkModalProps) {
           ) : (
             <form onSubmit={handleGenerate} className="space-y-6">
               <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-2 pl-1">Amount (USD)</label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
-                      <DollarSign className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 text-xl font-black italic focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20"
-                      required
-                    />
-                  </div>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                  <input
+                    type="checkbox"
+                    id="customAmount"
+                    checked={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.checked)}
+                    className="rounded border-white/20 bg-white/5 text-primary focus:ring-primary/40"
+                  />
+                  <label htmlFor="customAmount" className="flex items-center gap-2 text-sm font-bold cursor-pointer">
+                    <Edit3 className="w-4 h-4 text-primary" />
+                    Custom amount link (payer enters amount, username & game on pay page)
+                  </label>
                 </div>
 
+                {!customAmount && (
+                  <div>
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-2 pl-1">Amount (USD)</label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+                        <DollarSign className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 text-xl font-black italic focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20"
+                        required={!customAmount}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div>
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-2 pl-1">Note / Description</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-2 pl-1">Note / Description (optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. Deposit for Game"
+                    placeholder={customAmount ? "e.g. Deposit — enter your amount" : "e.g. Deposit for Game"}
                     value={remark}
                     onChange={(e) => setRemark(e.target.value)}
                     className="w-full h-12 bg-white/[0.03] border border-white/10 rounded-xl px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20"
@@ -125,8 +155,8 @@ export function GenerateLinkModal({ isOpen, onClose }: GenerateLinkModalProps) {
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading || !amount} className="w-full h-14 neon-button text-lg font-bold">
-                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Generate Unique Link"}
+              <Button type="submit" disabled={loading || (!customAmount && !amount)} className="w-full h-14 neon-button text-lg font-bold">
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : customAmount ? "Generate Custom Amount Link" : "Generate Unique Link"}
               </Button>
             </form>
           )}

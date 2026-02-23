@@ -18,13 +18,15 @@ import {
   Wallet2,
   History,
   Search,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Edit3
 } from "lucide-react";
 import { PerformanceChart } from "../components/charts/PerformanceChart";
 import { api } from "../lib/api";
 import { toast } from "../hooks/use-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { CreateDepositModal } from "../components/modals/CreateDepositModal";
+import { GenerateLinkModal } from "../components/modals/GenerateLinkModal";
 import { StatCard } from "../components/ui/stat-card";
 import { cn } from "../lib/utils";
 
@@ -86,6 +88,7 @@ export default function Dashboard() {
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [generatedQR, setGeneratedQR] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [customLinkModalOpen, setCustomLinkModalOpen] = useState(false);
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [staffStats, setStaffStats] = useState<StaffStats | null>(null);
@@ -374,6 +377,14 @@ export default function Dashboard() {
                                 </>
                             )}
                         </button>
+                        <button 
+                            type="button"
+                            onClick={() => setCustomLinkModalOpen(true)}
+                            className="h-14 w-full sm:w-auto px-6 rounded-xl bg-white/5 border-2 border-primary/40 text-primary text-sm font-black uppercase tracking-widest hover:bg-primary/10 hover:border-primary/60 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                            <Edit3 className="w-4 h-4" />
+                            <span>Custom Amount Link</span>
+                        </button>
                     </div>
 
                     {(generatedLink || generatedQR) && (
@@ -655,6 +666,12 @@ export default function Dashboard() {
         onSuccess={() => {
           api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => {});
         }}
+      />
+
+      <GenerateLinkModal 
+        isOpen={customLinkModalOpen} 
+        onClose={() => setCustomLinkModalOpen(false)} 
+        initialCustomAmount={true}
       />
     </div>
   );

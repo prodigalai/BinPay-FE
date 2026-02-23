@@ -20,18 +20,40 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Initialize audio - using 'positive-notification-951'
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');
     audioRef.current.load();
+
+    // 1. Request Browser Notification Permission (for the popup)
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    // 2. Audio "Unlocker" for Browsers
+    const unlockAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          audioRef.current?.pause();
+          if (audioRef.current) audioRef.current.currentTime = 0;
+        }).catch(() => {});
+      }
+      window.removeEventListener('click', unlockAudio);
+    };
+    window.addEventListener('click', unlockAudio);
+
+    return () => window.removeEventListener('click', unlockAudio);
   }, []);
 
   const playNotificationSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      // Many browsers require a user interaction before playing sound. 
-      // The first click on the dashboard usually unlocks this.
-      const promise = audioRef.current.play();
-      if (promise !== undefined) {
-          promise.catch(e => {
-              console.warn('Auto-play was prevented. Sound will play after first user interaction.', e);
-          });
+      audioRef.current.play().catch(e => {
+        console.warn('Audio play failed (interaction needed):', e);
+      });
+
+      // Browser Notification logic (if user allowed)
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Pay4Edge Update", {
+          body: "New notification received in your dashboard",
+          icon: "/favicon.ico"
+        });
       }
     }
   };

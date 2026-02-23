@@ -461,7 +461,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="p-0 overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left min-w-[400px]">
                             <tbody className="divide-y divide-white/5 text-xs">
                                 {webhookLogs.slice(0, 5).length > 0 ? (
                                     webhookLogs.slice(0, 5).map((log, i) => (

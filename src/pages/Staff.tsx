@@ -253,7 +253,7 @@ export default function Staff() {
                       <td className="py-4 px-6 text-xs text-muted-foreground font-medium">{formatDate(m.createdAt)}</td>
                       <td className="py-4 px-6 text-right">
                         {(user?.role === "ADMIN" || user?.role === "AGENT") && (
-                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <button 
                               onClick={() => initEdit(m)}
                               className="p-2 text-muted-foreground hover:text-white hover:bg-white/10 rounded-lg transition-all"

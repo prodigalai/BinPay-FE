@@ -12,11 +12,13 @@ import {
   MapPin,
   ChevronRight,
   Copy,
-  Info
+  Info,
+  Link as LinkIcon
 } from "lucide-react";
 import { api, type Order, type OrdersResponse, type WalletBalance } from "../lib/api";
 import { StatusBadge } from "../components/ui/status-badge";
 import { CreateDepositModal } from "../components/modals/CreateDepositModal";
+import { GenerateLinkModal } from "../components/modals/GenerateLinkModal";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "../hooks/use-toast";
@@ -38,11 +40,10 @@ function statusToBadge(s: string): "pending" | "completed" | "failed" {
 export default function Deposits() {
   const { user } = useAuth();
   const isPlayer = user?.role === "PLAYER";
+  const isAdmin = user?.role === "ADMIN";
+  const isAgent = user?.role === "AGENT";
   const isAgentOrStaff = ["AGENT", "STAFF", "SUPPORT", "ADMIN"].includes(user?.role || "");
   const isStaff = user?.role === "STAFF" || user?.role === "SUPPORT";
-  const isAgent = user?.role === "AGENT";
-  const isAdmin = user?.role === "ADMIN";
-  const isMaster = isAdmin;
   
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
@@ -50,6 +51,7 @@ export default function Deposits() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
@@ -142,15 +144,27 @@ export default function Deposits() {
           </p>
         </div>
 
-        <button 
-          onClick={() => setIsDepositModalOpen(true)}
-          className="neon-button-accent min-h-[52px] px-8 text-sm font-black shadow-2xl shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3 group"
-        >
-          <div className="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-            <Plus className="w-4 h-4" />
-          </div>
-          Create Deposit
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          {isAgentOrStaff && (
+            <button 
+              onClick={() => setIsLinkModalOpen(true)}
+              className="bg-white/5 border border-white/10 min-h-[52px] px-6 text-sm font-black shadow-xl hover:bg-white/10 active:scale-[0.98] transition-all flex items-center gap-3 group rounded-xl"
+            >
+              <LinkIcon className="w-4 h-4 text-primary" />
+              Generate Payment Link
+            </button>
+          )}
+          
+          <button 
+            onClick={() => setIsDepositModalOpen(true)}
+            className="neon-button-accent min-h-[52px] px-8 text-sm font-black shadow-2xl shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3 group"
+          >
+            <div className="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
+              <Plus className="w-4 h-4" />
+            </div>
+            Create Deposit
+          </button>
+        </div>
       </div>
 
       {/* Top Stats Bar */}
@@ -285,7 +299,7 @@ export default function Deposits() {
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-black tracking-tighter text-white/90">ORD-{o._id.slice(-6).toUpperCase()}</span>
-                          <button onClick={() => copyToClipboard(o._id)} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
+                          <button onClick={() => copyToClipboard(o._id)} className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
                             <Copy className="w-3 h-3 text-muted-foreground hover:text-primary" />
                           </button>
                         </div>
@@ -435,6 +449,11 @@ export default function Deposits() {
         isOpen={isDepositModalOpen} 
         onClose={() => setIsDepositModalOpen(false)} 
         onSuccess={fetchData}
+      />
+
+      <GenerateLinkModal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
       />
     </div>
   );

@@ -26,6 +26,8 @@ import Logs from "./pages/Logs";
 import NotFound from "./pages/NotFound";
 
 import PaymentPage from "./pages/PaymentPage";
+import PayLinkPage from "./pages/PayLinkPage";
+import PayLinkSuccess from "./pages/PayLinkSuccess";
 import GeneratedLinks from "./pages/GeneratedLinks";
 
 const queryClient = new QueryClient();
@@ -67,8 +69,10 @@ function AnimatedRoutes() {
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/withdrawals" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "PLAYER"]}><Withdrawals /></RoleRoute>} />
         <Route path="/logs" element={<RoleRoute allowedRoles={["ADMIN"]}><Logs /></RoleRoute>} />
-        <Route path="/generated-links" element={<RoleRoute allowedRoles={["STAFF", "SUPPORT"]}><GeneratedLinks /></RoleRoute>} />
+        <Route path="/generated-links" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "STAFF", "SUPPORT"]}><GeneratedLinks /></RoleRoute>} />
         <Route path="/pay/:id" element={<PaymentPage />} />
+        <Route path="/pay-link/:id" element={<PayLinkPage />} />
+        <Route path="/pay-link/:id/success" element={<PayLinkSuccess />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </PageTransition>
@@ -78,7 +82,9 @@ function AnimatedRoutes() {
 function AppRoutes() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const isPublicPage = ["/", "/login", "/terms"].includes(location.pathname) || location.pathname.startsWith("/pay");
+  const isPublicPage = ["/", "/login", "/terms"].includes(location.pathname) || 
+                       location.pathname.startsWith("/pay") ||
+                       location.pathname.startsWith("/pay-link");
 
   return (
     <div className="min-h-screen bg-background relative">

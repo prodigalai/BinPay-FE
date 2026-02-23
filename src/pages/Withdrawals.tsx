@@ -143,7 +143,7 @@ export default function Withdrawals() {
                       {canApprove && (
                         <td className="py-5 px-6 text-right whitespace-nowrap">
                           {r.status === "PENDING" ? (
-                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                               <Button variant="ghost" size="sm" className="h-8 hover:bg-emerald-500/20 hover:text-emerald-500 text-xs font-bold uppercase tracking-wider" onClick={() => handleStatus(r._id, "APPROVED")}>Approve</Button>
                               <Button variant="ghost" size="sm" className="h-8 hover:bg-red-500/20 hover:text-red-500 text-xs font-bold uppercase tracking-wider" onClick={() => handleStatus(r._id, "REJECTED")}>Reject</Button>
                             </div>

@@ -7,6 +7,7 @@ import { Navbar } from "./components/layout/Navbar";
 import { BottomNav } from "./components/layout/BottomNav";
 import { PageTransition } from "./components/layout/PageTransition";
 import { AuthProvider, useAuth, type UserRole } from "./contexts/AuthContext";
+import { SocketProvider } from "./contexts/SocketContext";
 import { useSwipeNavigation } from "./hooks/useSwipeNavigation";
 import Landing from "./pages/Landingpage";
 import Index from "./pages/Index";
@@ -106,7 +107,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <SocketProvider>
+            <AppRoutes />
+          </SocketProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -294,11 +294,25 @@ export default function Deposits() {
                           {o.webhookLogs && o.webhookLogs.length > 0 && (
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-black text-emerald-500 animate-pulse-subtle">
                                 <Activity className="w-2 h-2" />
-                                LIVE HOOK
+                                HOOK
                             </div>
                           )}
+                        </div>
+                        
+                        <div className="mt-2.5 flex flex-wrap gap-2">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Player</span>
+                            <span className="text-xs font-bold text-white">{(o as any).gameUsername || "—"}</span>
+                          </div>
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/15 border border-primary/30">
+                            <span className="text-[9px] font-bold text-primary/80 uppercase tracking-wider">Game</span>
+                            <span className="text-xs font-black text-primary uppercase tracking-wide">{(o as any).gameName || "—"}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 opacity-30 group-hover:opacity-60 transition-opacity">
                           {o.gatewayOrderId && (
-                            <span className="text-[9px] text-muted-foreground italic truncate max-w-[80px]">#{o.gatewayOrderId.slice(-6).toUpperCase()}</span>
+                             <span className="text-[9px] text-muted-foreground font-mono">ID: {o.gatewayOrderId.slice(-10).toUpperCase()}</span>
                           )}
                         </div>
                       </div>

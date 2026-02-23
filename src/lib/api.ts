@@ -16,7 +16,7 @@ export interface LoginResponse {
 
 export interface Order {
   _id: string;
-  user: { _id: string; name: string; location?: string } | string;
+  user: { _id: string; name: string; location?: string } | string | null;
   amount: number;
   currency?: string;
   status: string;
@@ -26,6 +26,8 @@ export interface Order {
   location?: string;
   generatedBy?: { _id: string; name: string; role: string };
   feePercent?: number;
+  gameUsername?: string;
+  gameName?: string;
   webhookLogs?: Array<{ event: string; timestamp: string; processed: boolean; reason?: string }>;
   createdAt: string;
 }

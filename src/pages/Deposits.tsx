@@ -328,13 +328,15 @@ export default function Deposits() {
                         <td className="py-6 px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center text-xs font-bold shadow-inner">
-                              {(o.user as any)?.name?.charAt(0).toUpperCase() || "P"}
+                              {((o.user as any)?.name || (o as any).gameUsername || "?")?.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-sm font-black text-white group-hover:text-primary transition-colors">{(o.user as any)?.name || "Anonymous Player"}</span>
+                              <span className="text-sm font-black text-white group-hover:text-primary transition-colors">
+                                {(o.user as any)?.name || (o as any).gameUsername || "—"}
+                              </span>
                               <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium italic mt-0.5">
                                 <MapPin className="w-2 h-2 text-primary" />
-                                {o.location || (o.user as any)?.location || "External Location"}
+                                {o.location || (o.user as any)?.location || "—"}
                               </span>
                             </div>
                           </div>

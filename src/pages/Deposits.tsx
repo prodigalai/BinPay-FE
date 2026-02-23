@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { api, type Order, type OrdersResponse, type WalletBalance } from "../lib/api";
 import { StatusBadge } from "../components/ui/status-badge";
-import { CreateDepositModal } from "../components/modals/CreateDepositModal";
+
 import { GenerateLinkModal } from "../components/modals/GenerateLinkModal";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
@@ -50,7 +50,7 @@ export default function Deposits() {
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
@@ -155,15 +155,6 @@ export default function Deposits() {
             </button>
           )}
           
-          <button 
-            onClick={() => setIsDepositModalOpen(true)}
-            className="neon-button-accent min-h-[52px] px-8 text-sm font-black shadow-2xl shadow-accent/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3 group"
-          >
-            <div className="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-              <Plus className="w-4 h-4" />
-            </div>
-            Create Deposit
-          </button>
         </div>
       </div>
 
@@ -444,12 +435,6 @@ export default function Deposits() {
           </p>
         </div>
       </div>
-
-      <CreateDepositModal 
-        isOpen={isDepositModalOpen} 
-        onClose={() => setIsDepositModalOpen(false)} 
-        onSuccess={fetchData}
-      />
 
       <GenerateLinkModal
         isOpen={isLinkModalOpen}

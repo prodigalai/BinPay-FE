@@ -15,7 +15,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -25,7 +25,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       await login(email, password);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
     } finally {

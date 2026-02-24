@@ -48,7 +48,7 @@ export function Navbar() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
     setIsLogoutModalOpen(false);
   };
 

@@ -46,6 +46,8 @@ interface RecentActivity {
   currency: string;
   date: string;
   user: string;
+  gameUsername?: string | null;
+  gameName?: string | null;
   status: string;
   id: string;
   location?: string;
@@ -98,7 +100,7 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loadingChart, setLoadingChart] = useState(true);
   const [chartRange, setChartRange] = useState("30d");
-  const [activityTab, setActivityTab] = useState<'ALL' | 'DEPOSIT' | 'WITHDRAWAL'>('ALL');
+  const [activityTab, setActivityTab] = useState<'SUCCESS' | 'ALL' | 'DEPOSIT' | 'WITHDRAWAL'>('SUCCESS');
 
   useEffect(() => {
     api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => {});
@@ -577,18 +579,18 @@ export default function Dashboard() {
                         </button>
                     </div>
                     
-                    {/* Tabs */}
+                    {/* Tabs: SUCCESS first, default selected (white) */}
                     <div className="flex p-1 bg-black/20 rounded-xl mb-4">
-                        {(['ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map(tab => (
+                        {(['SUCCESS', 'ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActivityTab(tab)}
                                 className={cn(
                                     "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
-                                    activityTab === tab ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white/70"
+                                    activityTab === tab ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white/70"
                                 )}
                             >
-                                {tab === 'ALL' ? 'All' : tab + 's'}
+                                {tab === 'ALL' ? 'All' : tab === 'SUCCESS' ? 'Success' : tab + 's'}
                             </button>
                         ))}
                     </div>
@@ -606,18 +608,20 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                    {recentActivity.filter(a => 
-                        (!activitySearch || 
-                        a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || 
-                        a.user?.toLowerCase().includes(activitySearch.toLowerCase())) &&
-                        (activityTab === 'ALL' || a.type === activityTab)
-                    ).length > 0 ? (
-                        recentActivity.filter(a => 
-                            (!activitySearch || 
-                            a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || 
-                            a.user?.toLowerCase().includes(activitySearch.toLowerCase())) &&
-                            (activityTab === 'ALL' || a.type === activityTab)
-                        ).map((activity, index) => (
+                    {recentActivity.filter(a => {
+                        const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
+                        const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
+                            ? (activityTab === 'SUCCESS' ? (a.status === 'SUCCESS' || a.status === 'APPROVED') : true)
+                            : a.type === activityTab;
+                        return matchesSearch && matchesTab;
+                    }).length > 0 ? (
+                        recentActivity.filter(a => {
+                            const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
+                            const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
+                                ? (activityTab === 'SUCCESS' ? a.status === 'SUCCESS' : true)
+                                : a.type === activityTab;
+                            return matchesSearch && matchesTab;
+                        }).map((activity, index) => (
                             <div key={activity.id || index} className="group p-3 rounded-xl hover:bg-white/[0.04] transition-colors border border-transparent hover:border-white/5">
                                 <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
@@ -632,7 +636,9 @@ export default function Dashboard() {
                                         <div className="min-w-0">
                                             <p className="text-xs font-bold text-white/90 truncate">{activity.title}</p>
                                             <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[10px] text-muted-foreground truncate">{activity.user}</span>
+                                                <span className="text-[10px] text-muted-foreground truncate">
+                                                    {activity.user || (activity.gameUsername || activity.gameName ? [activity.gameUsername, activity.gameName].filter(Boolean).join(' · ') : 'Pay Link')}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

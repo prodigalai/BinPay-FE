@@ -25,7 +25,7 @@ export default function Register() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -35,7 +35,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(name, email, password, role);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed.");
     } finally {

@@ -7,10 +7,11 @@ interface StatCardProps {
   change?: string;
   changeType?: "positive" | "negative" | "neutral";
   icon: LucideIcon;
+  description?: string;
   className?: string;
 }
 
-export function StatCard({ title, value, change, changeType = "neutral", icon: Icon, className }: StatCardProps) {
+export function StatCard({ title, value, change, changeType = "neutral", icon: Icon, description, className }: StatCardProps) {
   return (
     <div className={cn(
       "group relative overflow-hidden",
@@ -63,6 +64,13 @@ export function StatCard({ title, value, change, changeType = "neutral", icon: I
         <h3 className="text-[30px] font-semibold text-white tracking-[-0.02em] leading-none mb-3">
           {value}
         </h3>
+
+        {/* Description */}
+        {description && (
+          <p className="text-[11px] text-[#5a6680] leading-tight mb-2">
+            {description}
+          </p>
+        )}
         
         {/* Change indicator */}
         {change && (

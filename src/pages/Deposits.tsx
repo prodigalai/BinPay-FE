@@ -46,6 +46,7 @@ function statusToBadge(s: string): "pending" | "completed" | "failed" {
 export default function Deposits() {
   const { user } = useAuth();
   const isPlayer = user?.role === "PLAYER";
+  const useWalletBalance = true;
   const isAdmin = user?.role === "ADMIN";
   const isAgent = user?.role === "AGENT";
   const isAgentOrStaff = ["AGENT", "STAFF", "SUPPORT", "ADMIN"].includes(user?.role || "");
@@ -68,10 +69,8 @@ export default function Deposits() {
     try {
       const [ordersRes, balanceRes, statsRes] = await Promise.all([
         api.get<OrdersResponse>("payments", { params: filter !== "all" ? { status: filter } : {} }).catch(() => ({ success: false, orders: [], total: 0 })),
-        // Player: true wallet balance; Agent/Admin/Staff: business balance from dashboard stats
-        isPlayer
-          ? api.get<WalletBalance>("wallets/balance").catch(() => ({ success: false, balance: 0 }))
-          : Promise.resolve({ success: false, balance: 0 } as any),
+        // Player/Admin/Agent: wallet balance (API credits link payments to admin/agent); Staff: not used
+        api.get<WalletBalance>("wallets/balance").catch(() => ({ success: false, balance: 0 })),
         !isPlayer
           ? api.get<{ success: boolean; stats: DashboardStatsLite }>("dashboard/stats").catch(() => ({ success: false, stats: { totalDeposits: 0, totalWithdrawals: 0 } }))
           : Promise.resolve({ success: false, stats: { totalDeposits: 0, totalWithdrawals: 0 } }),
@@ -81,11 +80,8 @@ export default function Deposits() {
         setOrders(ordersRes.orders);
         setTotal(ordersRes.total);
       }
-      if (isPlayer) {
-        if (balanceRes.success) setBalance(balanceRes.balance);
-      } else if (statsRes.success) {
-        const stats = statsRes.stats;
-        setBalance(stats.totalDeposits - stats.totalWithdrawals);
+      if (balanceRes.success) {
+        setBalance(balanceRes.balance);
       }
     } finally {
       if (!silent) setLoading(false);

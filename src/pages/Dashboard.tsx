@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { 
-  Download, 
-  Copy, 
-  HelpCircle, 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Activity, 
-  Plus, 
-  Users, 
+import {
+  Download,
+  Copy,
+  HelpCircle,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Activity,
+  Plus,
+  Users,
   MapPin,
   ArrowUpRight,
   ArrowDownRight,
@@ -98,7 +98,7 @@ export default function Dashboard() {
 
   const [activitySearch, setActivitySearch] = useState("");
   const [customLinkModalOpen, setCustomLinkModalOpen] = useState(false);
-  
+
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [staffStats, setStaffStats] = useState<StaffStats | null>(null);
   const [primaryLink, setPrimaryLink] = useState<StaffLink | null>(null);
@@ -111,7 +111,7 @@ export default function Dashboard() {
   const [activityTab, setActivityTab] = useState<'SUCCESS' | 'ALL' | 'DEPOSIT' | 'WITHDRAWAL'>('SUCCESS');
 
   useEffect(() => {
-    api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => {});
+    api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -120,38 +120,38 @@ export default function Dashboard() {
       .then((r) => {
         if (r.success) setChartData(r.chartData);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingChart(false));
   }, [chartRange, isStaff]);
 
   useEffect(() => {
     if (isAgentOrStaff) {
       if (isStaff) {
-         api.get<{ success: boolean; summary: StaffStats }>("dashboard/staff-links")
+        api.get<{ success: boolean; summary: StaffStats }>("dashboard/staff-links")
           .then((r) => {
-             if (r.success) setStaffStats(r.summary);
+            if (r.success) setStaffStats(r.summary);
           })
-          .catch(() => {})
+          .catch(() => { })
           .finally(() => setLoadingStats(false));
 
-          api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
-            .then((r) => {
-              if (r.success) setRecentActivity(r.activities);
-            })
-            .catch(() => {});
+        api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
+          .then((r) => {
+            if (r.success) setRecentActivity(r.activities);
+          })
+          .catch(() => { });
       } else {
         api.get<{ success: boolean; stats: DashboardStats }>("dashboard/stats")
-            .then((r) => {
+          .then((r) => {
             if (r.success) setDashboardStats(r.stats);
-            })
-            .catch(() => {})
-            .finally(() => setLoadingStats(false));
-        
+          })
+          .catch(() => { })
+          .finally(() => setLoadingStats(false));
+
         api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
-            .then((r) => {
+          .then((r) => {
             if (r.success) setRecentActivity(r.activities);
-            })
-            .catch(() => {});
+          })
+          .catch(() => { });
       }
 
       if (isAdmin) {
@@ -160,14 +160,14 @@ export default function Dashboard() {
             .then((r) => {
               if (r.success) setWebhookLogs(r.logs);
             })
-            .catch(() => {});
+            .catch(() => { });
         };
         fetchLogs();
         const interval = setInterval(fetchLogs, 10000);
         return () => clearInterval(interval);
       }
     } else {
-        setLoadingStats(false);
+      setLoadingStats(false);
     }
   }, [isAgentOrStaff, isAdmin, isStaff]);
 
@@ -224,8 +224,8 @@ export default function Dashboard() {
               <span className={cn(
                 "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider",
                 isAdmin ? "bg-violet-500/10 text-violet-400 border border-violet-500/20" :
-                isAgent ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
-                "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                  isAgent ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                    "bg-blue-500/10 text-blue-400 border border-blue-500/20"
               )}>
                 {isAdmin ? "Master" : (isAgent ? "Agent" : "Staff")}
               </span>
@@ -235,16 +235,16 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-3">
           {!isAgentOrStaff && (
-              <button 
-                  onClick={() => setIsDepositModalOpen(true)}
-                  className="h-10 px-5 text-[13px] font-semibold rounded-xl bg-emerald-500 text-white hover:bg-emerald-400 active:scale-[0.97] transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-              >
-                  <Plus className="w-4 h-4" />
-                  Quick Deposit
-              </button>
+            <button
+              onClick={() => setIsDepositModalOpen(true)}
+              className="h-10 px-5 text-[13px] font-semibold rounded-xl bg-emerald-500 text-white hover:bg-emerald-400 active:scale-[0.97] transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+            >
+              <Plus className="w-4 h-4" />
+              Quick Deposit
+            </button>
           )}
           {(isAgent || isMaster || isStaff) && (
-            <button 
+            <button
               type="button"
               onClick={() => setCustomLinkModalOpen(true)}
               className="h-10 px-4 rounded-xl bg-[#12151a] border border-[#1e2330] text-[#8a95a8] text-[13px] font-medium hover:border-[#2a3040] hover:text-white transition-all flex items-center gap-2"
@@ -272,90 +272,114 @@ export default function Dashboard() {
           ) : (isStaff ? staffStats : dashboardStats) ? (
             <>
               {isStaff ? (
-                  <>
-                      <StatCard title="Links Created" value={staffStats?.totalLinksCreated.toLocaleString() || "0"} icon={LinkIcon} change="Total" changeType="neutral" />
-                      <StatCard title="Pending" value={`$${staffStats?.totalPendingAmount.toLocaleString() || "0"}`} icon={Clock} change="Awaiting" changeType="neutral" />
-                      <StatCard title="Received" value={`$${staffStats?.totalReceivedAmount.toLocaleString() || "0"}`} icon={TrendingUp} change="Completed" changeType="positive" />
-                      <StatCard title="Generated" value={`$${staffStats?.totalGeneratedAmount.toLocaleString() || "0"}`} icon={DollarSign} change="Total value" changeType="neutral" />
-                  </>
+                <>
+                  <StatCard title="Links Created" value={staffStats?.totalLinksCreated.toLocaleString() || "0"} icon={LinkIcon} change="Total" changeType="neutral" />
+                  <StatCard title="Pending" value={`$${staffStats?.totalPendingAmount.toLocaleString() || "0"}`} icon={Clock} change="Awaiting" changeType="neutral" />
+                  <StatCard title="Received" value={`$${staffStats?.totalReceivedAmount.toLocaleString() || "0"}`} icon={TrendingUp} change="Completed" changeType="positive" />
+                  <StatCard title="Generated" value={`$${staffStats?.totalGeneratedAmount.toLocaleString() || "0"}`} icon={DollarSign} change="Total value" changeType="neutral" />
+                </>
               ) : dashboardStats && (
-                  <>
-                    <StatCard title="Deposits" value={`$${dashboardStats.totalDeposits.toLocaleString()}`} icon={TrendingUp} change="+12.5% this month" changeType="positive" />
-                    {isAdmin && <StatCard title="Staff" value={dashboardStats.totalStaff?.toLocaleString() || "0"} icon={Users} />}
-                    {isAdmin && <StatCard title="Agents" value={dashboardStats.totalAgents?.toLocaleString() || "0"} icon={Users} />}
-                    {isAdmin && <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} change="-2.4% this month" changeType="negative" />}
-                    {!isAdmin && (
-                      <>
-                        <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} />
-                        <StatCard title="Pending Deposits" value={dashboardStats.pendingDepositCount.toLocaleString()} icon={Clock} change="Awaiting" changeType="neutral" />
-                        <StatCard title="Net Volume" value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} icon={Activity} change="↑ 8.2%" changeType="positive" />
-                      </>
-                    )}
-                  </>
+                <>
+                  <StatCard title="Deposits" value={`$${dashboardStats.totalDeposits.toLocaleString()}`} icon={TrendingUp} change="+12.5% this month" changeType="positive" description="Total amount received from player payments" />
+                  {isAdmin && <StatCard title="Total Balance" value={balance !== null ? `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"} icon={Wallet} description="Your current wallet balance (use for payouts)" />}
+                  {isAdmin && <StatCard title="Agents" value={dashboardStats.totalAgents?.toLocaleString() || "0"} icon={Users} description="Number of agent accounts" />}
+                  {isAdmin && <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} change="-2.4% this month" changeType="negative" description="Total sent out via payout links" />}
+                  {!isAdmin && (
+                    <>
+                      <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} />
+                      <StatCard title="Pending Deposits" value={dashboardStats.pendingDepositCount.toLocaleString()} icon={Clock} change="Awaiting" changeType="neutral" />
+                      <StatCard title="Net Volume" value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} icon={Activity} change="↑ 8.2%" changeType="positive" />
+                    </>
+                  )}
+                </>
               )}
             </>
           ) : null}
         </section>
       )}
 
-      {(isAgent || isMaster || isStaff) && primaryLink && (
+      {(isAgent || isMaster || isStaff) && (
         <section className="mb-8">
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-[#022c22] via-[#020617] to-[#022c22] shadow-[0_0_0_1px_rgba(16,185,129,0.35)] p-5 sm:p-6">
-            <div className="absolute inset-y-0 right-[-40%] w-2/3 bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 border border-emerald-500/30">
-                  <LinkIcon className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[11px] font-semibold tracking-wide text-emerald-300/90">
-                    Default payment link
-                  </span>
-                  {primaryLink.customAmount && (
-                    <span className="rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-200/90">
-                      Custom amount
+          {primaryLink ? (
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-[#022c22] via-[#020617] to-[#022c22] shadow-[0_0_0_1px_rgba(16,185,129,0.35)] p-5 sm:p-6">
+              <div className="absolute inset-y-0 right-[-40%] w-2/3 bg-emerald-500/10 blur-3xl pointer-events-none" />
+              <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2 max-w-xl">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 border border-emerald-500/30">
+                    <LinkIcon className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-semibold tracking-wide text-emerald-300/90">
+                      Default payment link
                     </span>
-                  )}
-                </div>
-                <h2 className="text-[15px] sm:text-[16px] font-semibold text-white">
-                  Share this one link with all your players.
-                </h2>
-                <p className="text-[11px] text-emerald-100/80">
-                  They open this link, enter their username, game and amount, and you get the payment in one place.
-                </p>
-              </div>
-
-              <div className="w-full sm:w-[320px] space-y-2">
-                <div className="flex items-center gap-2 rounded-xl bg-black/30 border border-emerald-500/40 px-3 py-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-wide text-emerald-200/80 font-semibold mb-0.5">
-                      Your link
-                    </p>
-                    <p className="text-[11px] text-emerald-50/90 font-mono break-all">
-                      {primaryLink.paymentLink}
-                    </p>
+                    {primaryLink.customAmount && (
+                      <span className="rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-200/90">
+                        Custom amount
+                      </span>
+                    )}
                   </div>
+                  <h2 className="text-[15px] sm:text-[16px] font-semibold text-white">
+                    Share this one link with all your players.
+                  </h2>
+                  <p className="text-[11px] text-emerald-100/80">
+                    They open this link, enter their username, game and amount, and you get the payment in one place.
+                  </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(primaryLink.paymentLink)}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-[13px] font-semibold text-white py-2.5 hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/20"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Copy link
-                  </button>
-                  <a
-                    href={primaryLink.paymentLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-transparent border border-emerald-500/40 text-emerald-200 text-[12px] font-semibold px-3 py-2 hover:bg-emerald-500/10 active:scale-[0.97] transition-all"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Open
-                  </a>
+
+                <div className="w-full sm:w-[320px] space-y-2">
+                  <div className="flex items-center gap-2 rounded-xl bg-black/30 border border-emerald-500/40 px-3 py-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] uppercase tracking-wide text-emerald-200/80 font-semibold mb-0.5">
+                        Your link
+                      </p>
+                      <p className="text-[11px] text-emerald-50/90 font-mono break-all">
+                        {primaryLink.paymentLink}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(primaryLink.paymentLink)}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-[13px] font-semibold text-white py-2.5 hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/20"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy link
+                    </button>
+                    <a
+                      href={primaryLink.paymentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-transparent border border-emerald-500/40 text-emerald-200 text-[12px] font-semibold px-3 py-2 hover:bg-emerald-500/10 active:scale-[0.97] transition-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setCustomLinkModalOpen(true)}
+              className="w-full relative overflow-hidden rounded-2xl border border-dashed border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors p-6 sm:p-8 text-left group"
+            >
+              <div className="absolute inset-y-0 right-[-30%] w-1/2 bg-emerald-500/10 blur-3xl pointer-events-none" />
+              <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <LinkIcon className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[11px] font-semibold text-emerald-400/90 uppercase tracking-wider mb-1">Default payment link</p>
+                  <h2 className="text-[15px] sm:text-[16px] font-semibold text-white mb-1">Create your custom payment link</h2>
+                  <p className="text-[12px] text-[#8a95a8]">One link for all players — they enter amount, username & game. You get payments in one place.</p>
+                </div>
+                <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 px-4 py-2.5 text-[13px] font-semibold text-emerald-300 group-hover:bg-emerald-500/30 transition-colors">
+                  Create link
+                  <Edit3 className="w-4 h-4" />
+                </span>
+              </div>
+            </button>
+          )}
         </section>
       )}
 
@@ -367,9 +391,9 @@ export default function Dashboard() {
         <div className="lg:col-span-7 space-y-5">
           {/* Chart Card */}
           <div className="bg-gradient-to-br from-[#12151a] to-[#0e1117] border border-[#1e2330] rounded-2xl p-5 sm:p-7">
-            <PerformanceChart 
-              data={chartData} 
-              isLoading={loadingChart} 
+            <PerformanceChart
+              data={chartData}
+              isLoading={loadingChart}
               range={chartRange}
               onRangeChange={setChartRange}
             />
@@ -407,8 +431,8 @@ export default function Dashboard() {
                           <td className="px-6 py-3.5">
                             <span className={cn(
                               "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold",
-                              log.processed 
-                                ? "bg-emerald-500/10 text-emerald-400" 
+                              log.processed
+                                ? "bg-emerald-500/10 text-emerald-400"
                                 : "bg-red-500/10 text-red-400"
                             )}>
                               <div className="w-1 h-1 rounded-full bg-current" />
@@ -436,7 +460,7 @@ export default function Dashboard() {
                 </table>
               </div>
               <div className="px-3 py-2 border-t border-[#1a1f2e]">
-                <button 
+                <button
                   onClick={() => navigate('/logs')}
                   className="w-full py-2.5 rounded-xl hover:bg-[#141820] text-[12px] font-medium text-[#4a5568] hover:text-[#8a95a8] transition-all flex items-center justify-center gap-1.5"
                 >
@@ -459,13 +483,13 @@ export default function Dashboard() {
                   <Wallet2 className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium text-[#4f5d73] uppercase tracking-wider">Balance</p>
+                  <p className="text-[11px] font-medium text-[#4f5d73] uppercase tracking-wider">Total Balance</p>
                   <h2 className="text-[26px] font-semibold tracking-tight text-white">
                     {balance !== null ? `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"}
                   </h2>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setIsDepositModalOpen(true)}
                 className="w-full h-10 rounded-xl bg-emerald-500 text-white text-[13px] font-semibold hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/15"
               >
@@ -485,21 +509,21 @@ export default function Dashboard() {
                     {recentActivity.length}
                   </span>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
                       .then((r) => {
                         if (r.success) setRecentActivity(r.activities);
                         toast({ title: "Refreshed", description: "Activity feed updated." });
                       })
-                      .catch(() => {});
+                      .catch(() => { });
                   }}
                   className="p-2 hover:bg-[#1a1f2e] rounded-lg transition-colors text-[#3a4558] hover:text-[#8a95a8]"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               </div>
-              
+
               {/* Filter Tabs */}
               <div className="flex p-1 bg-[#0a0d12] rounded-xl border border-[#1a1f2e] mb-3.5">
                 {(['SUCCESS', 'ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map(tab => (
@@ -508,8 +532,8 @@ export default function Dashboard() {
                     onClick={() => setActivityTab(tab)}
                     className={cn(
                       "flex-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all duration-200",
-                      activityTab === tab 
-                        ? "bg-[#1e2330] text-white shadow-sm" 
+                      activityTab === tab
+                        ? "bg-[#1e2330] text-white shadow-sm"
                         : "text-[#3a4558] hover:text-[#6b7a90]"
                     )}
                   >
@@ -521,7 +545,7 @@ export default function Dashboard() {
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2a3040]" />
-                <input 
+                <input
                   type="text"
                   placeholder="Search transactions…"
                   value={activitySearch}
@@ -536,27 +560,27 @@ export default function Dashboard() {
               {recentActivity.filter(a => {
                 const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
                 const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
-                    ? (activityTab === 'SUCCESS' ? (a.status === 'SUCCESS' || a.status === 'APPROVED') : true)
-                    : a.type === activityTab;
+                  ? (activityTab === 'SUCCESS' ? (a.status === 'SUCCESS' || a.status === 'APPROVED') : true)
+                  : a.type === activityTab;
                 return matchesSearch && matchesTab;
               }).length > 0 ? (
                 recentActivity.filter(a => {
                   const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
                   const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
-                      ? (activityTab === 'SUCCESS' ? a.status === 'SUCCESS' : true)
-                      : a.type === activityTab;
+                    ? (activityTab === 'SUCCESS' ? a.status === 'SUCCESS' : true)
+                    : a.type === activityTab;
                   return matchesSearch && matchesTab;
                 }).map((activity, index) => (
                   <div key={activity.id || index} className="group p-3 rounded-xl hover:bg-[#141820] transition-all duration-150 cursor-default">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={cn(
-                            "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border",
-                            activity.status === 'SUCCESS' 
-                              ? 'bg-emerald-500/[0.08] text-emerald-400 border-emerald-500/10' 
-                              : activity.status === 'FAILED' 
-                                ? 'bg-red-500/[0.08] text-red-400 border-red-500/10' 
-                                : 'bg-blue-500/[0.08] text-blue-400 border-blue-500/10'
+                          "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border",
+                          activity.status === 'SUCCESS'
+                            ? 'bg-emerald-500/[0.08] text-emerald-400 border-emerald-500/10'
+                            : activity.status === 'FAILED'
+                              ? 'bg-red-500/[0.08] text-red-400 border-red-500/10'
+                              : 'bg-blue-500/[0.08] text-blue-400 border-blue-500/10'
                         )}>
                           {activity.type === 'DEPOSIT' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                         </div>
@@ -597,17 +621,29 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <CreateDepositModal 
-        isOpen={isDepositModalOpen} 
-        onClose={() => setIsDepositModalOpen(false)} 
+      <CreateDepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
         onSuccess={() => {
-          api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => {});
+          api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => { });
         }}
       />
 
-      <GenerateLinkModal 
-        isOpen={customLinkModalOpen} 
-        onClose={() => setCustomLinkModalOpen(false)} 
+      <GenerateLinkModal
+        isOpen={customLinkModalOpen}
+        onClose={() => {
+          setCustomLinkModalOpen(false);
+          if (isAgentOrStaff) {
+            api.get<{ success: boolean; links: StaffLink[] }>("dashboard/staff-links")
+              .then((r) => {
+                if (r.success && Array.isArray(r.links) && r.links.length) {
+                  const custom = r.links.filter((l) => l.customAmount);
+                  setPrimaryLink(custom[0] ?? r.links[0]);
+                }
+              })
+              .catch(() => { });
+          }
+        }}
         initialCustomAmount={true}
       />
     </div>
@@ -615,11 +651,11 @@ export default function Dashboard() {
 }
 
 function ShieldCheckIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
-        </svg>
-    )
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" />
+    </svg>
+  )
 }
 
 // Loader2 spinner removed from dashboard (no longer needed for quick-create)

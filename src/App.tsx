@@ -29,6 +29,8 @@ import PaymentPage from "./pages/PaymentPage";
 import PayLinkPage from "./pages/PayLinkPage";
 import PayLinkSuccess from "./pages/PayLinkSuccess";
 import GeneratedLinks from "./pages/GeneratedLinks";
+import PayoutClaimPage from "./pages/PayoutClaimPage";
+import PayoutLinksAdmin from "./pages/PayoutLinksAdmin";
 
 const queryClient = new QueryClient();
 
@@ -67,9 +69,11 @@ function AnimatedRoutes() {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/withdrawals" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "PLAYER"]}><Withdrawals /></RoleRoute>} />
+        <Route path="/withdrawals" element={<RoleRoute allowedRoles={["ADMIN", "PLAYER"]}><Withdrawals /></RoleRoute>} />
         <Route path="/logs" element={<RoleRoute allowedRoles={["ADMIN"]}><Logs /></RoleRoute>} />
         <Route path="/generated-links" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "STAFF", "SUPPORT"]}><GeneratedLinks /></RoleRoute>} />
+        <Route path="/payout-links" element={<RoleRoute allowedRoles={["ADMIN"]}><PayoutLinksAdmin /></RoleRoute>} />
+        <Route path="/payout/:code" element={<PayoutClaimPage />} />
         <Route path="/pay/:id" element={<PaymentPage />} />
         <Route path="/pay-link/:id" element={<PayLinkPage />} />
         <Route path="/pay-link/:id/success" element={<PayLinkSuccess />} />
@@ -84,7 +88,8 @@ function AppRoutes() {
   const { isAuthenticated } = useAuth();
   const isPublicPage = ["/", "/login", "/terms"].includes(location.pathname) || 
                        location.pathname.startsWith("/pay") ||
-                       location.pathname.startsWith("/pay-link");
+                       location.pathname.startsWith("/pay-link") ||
+                       location.pathname.startsWith("/payout/");
 
   return (
     <div className="min-h-screen bg-background relative">

@@ -10,7 +10,8 @@ import {
   Bell,
   LogOut,
   Link as LinkIcon,
-  ArrowUpRight
+  ArrowUpRight,
+  Send
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../contexts/AuthContext";
@@ -20,9 +21,8 @@ import { LogoutConfirmModal } from "../modals/LogoutConfirmModal";
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
-  // Generated Links moved off main nav; accessible from Deposits header
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
-  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "AGENT", "PLAYER"] },
+  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "PLAYER"] },
   { name: "Disputes", path: "/disputes", icon: AlertTriangle, roles: ["ADMIN", "AGENT", "SUPPORT"] },
 ];
 

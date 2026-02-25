@@ -9,7 +9,7 @@ const navItems = [
   { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
   // Generated Links removed from bottom nav; open from Deposits header
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
-  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "AGENT", "PLAYER"] },
+  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "PLAYER"] },
 ];
 
 export function BottomNav() {

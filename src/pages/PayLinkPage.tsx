@@ -110,14 +110,14 @@ export default function PayLinkPage() {
     : (details.amountCharged || details.amount + feeAmount);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] text-white flex items-center justify-center p-4 sm:p-6 py-6 sm:py-8 relative overflow-y-auto overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] text-white p-4 sm:p-6 py-6 sm:py-8 relative overflow-x-hidden">
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[70%] sm:w-[50%] h-[40%] sm:h-[50%] bg-primary/8 rounded-full blur-[120px] sm:blur-[150px]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[70%] sm:w-[50%] h-[40%] sm:h-[50%] bg-accent/8 rounded-full blur-[120px] sm:blur-[150px]" />
       </div>
 
-      <div className="w-full max-w-[960px] animate-in fade-in zoom-in-95 duration-500 relative z-10 my-auto">
+      <div className="w-full max-w-[960px] animate-in fade-in zoom-in-95 duration-500 relative z-10 mx-auto">
         <div className="glass-strong rounded-xl sm:rounded-2xl lg:rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)]">
           
           {/* Two-Column Layout — stacks on mobile */}
@@ -174,8 +174,8 @@ export default function PayLinkPage() {
                     <UserIcon className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-white/40" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-0.5">Payment To</p>
-                    <p className="text-xs sm:text-sm font-bold text-white uppercase italic truncate">{details.agentName || "Trusted Merchant"}</p>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-0.5">Pay To</p>
+                    <p className="text-xs sm:text-sm font-bold text-white uppercase italic truncate">ENBYTES</p>
                   </div>
                 </div>
 

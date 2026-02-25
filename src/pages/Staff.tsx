@@ -110,7 +110,13 @@ export default function Staff() {
       await fetchStaff();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Operation failed";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+      const lower = msg.toLowerCase();
+      const isEmailExists = lower.includes("email already exists");
+      toast({
+        title: isEmailExists ? "Email already exists" : "Error",
+        description: msg,
+        variant: "destructive",
+      });
       throw e;
     }
   };

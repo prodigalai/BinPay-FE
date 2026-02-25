@@ -8,22 +8,20 @@ import {
   DollarSign, 
   Activity, 
   Plus, 
-  Share2, 
   Users, 
   MapPin,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
   Wallet,
   Wallet2,
   History,
   Search,
   Link as LinkIcon,
   Edit3,
-  Zap,
   Clock,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  ChevronRight
 } from "lucide-react";
 import { PerformanceChart } from "../components/charts/PerformanceChart";
 import { api } from "../lib/api";
@@ -98,11 +96,7 @@ export default function Dashboard() {
   const isMaster = isAdmin;
   const navigate = useNavigate();
 
-  const [paymentAmount, setPaymentAmount] = useState("");
   const [activitySearch, setActivitySearch] = useState("");
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
-  const [generatedQR, setGeneratedQR] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [customLinkModalOpen, setCustomLinkModalOpen] = useState(false);
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
@@ -204,30 +198,6 @@ export default function Dashboard() {
         setPrimaryLink(null);
       });
   }, [isAgentOrStaff]);
-
-  const handleGenerateLink = async () => {
-    if (!paymentAmount || isNaN(Number(paymentAmount)) || Number(paymentAmount) <= 0) {
-        toast({ title: "Invalid amount", description: "Please enter a valid amount greater than 0.", variant: "destructive" });
-        return;
-    }
-    setGenerating(true);
-    try {
-        const res = await api.post<{ success: boolean; paymentLink: string; qrCodeUrl: string }>("agent/payment-link", {
-            amount: Number(paymentAmount),
-            currency: "USD",
-            description: "Payment Link generated from Agent Dashboard"
-        });
-        if (res.success) {
-            setGeneratedLink(res.paymentLink);
-            setGeneratedQR(res.qrCodeUrl);
-            toast({ title: "Link Ready!", description: "Payment link has been generated successfully." });
-        }
-    } catch (e) {
-        toast({ title: "Failed", description: e instanceof Error ? e.message : "Error generating link", variant: "destructive" });
-    } finally {
-        setGenerating(false);
-    }
-  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -389,112 +359,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      {/* ━━━ QUICK GENERATE ━━━ */}
-      {(isAgent || isMaster || isStaff) && (
-        <section className="mb-8">
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#12151a] via-[#131820] to-[#12151a] border border-[#1e2330] rounded-2xl p-5 sm:p-6">
-            {/* Decorative gradient accent */}
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
-            
-            <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
-              {/* Label */}
-              <div className="flex items-center gap-3 sm:min-w-[200px]">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/10 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-white">Quick Payment</p>
-                  <p className="text-[12px] text-[#4f5d73]">Generate a secure payment link</p>
-                </div>
-              </div>
-              
-              {/* Input + CTA */}
-              <div className="flex flex-col sm:flex-row gap-3 flex-1">
-                <div className="relative flex-1 min-w-0">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4f5d73] font-medium text-[15px]">$</span>
-                  <input 
-                    type="number" 
-                    placeholder="0.00" 
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="w-full h-11 bg-[#0a0d12] border border-[#1e2330] rounded-xl pl-9 pr-4 text-[15px] font-medium text-white placeholder:text-[#2a3040] focus:border-emerald-500/30 focus:ring-2 focus:ring-emerald-500/10 outline-none transition-all"
-                  />
-                </div>
-                <button 
-                  onClick={handleGenerateLink}
-                  disabled={generating}
-                  className="h-11 px-6 rounded-xl bg-emerald-500 text-white text-[13px] font-semibold hover:bg-emerald-400 active:scale-[0.97] transition-all disabled:opacity-40 flex items-center justify-center gap-2 whitespace-nowrap shadow-lg shadow-emerald-500/15"
-                >
-                  {generating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <span>Create Link</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Generated link result */}
-            {(generatedLink || generatedQR) && (
-              <div className="mt-6 pt-6 border-t border-[#1e2330] animate-in slide-in-from-top-4 fade-in duration-500">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <p className="text-[12px] font-semibold text-emerald-400">Ready to share</p>
-                </div>
-                <div className="flex flex-col md:flex-row gap-5">
-                  {generatedQR && (
-                    <div className="flex flex-col items-center gap-2 order-first md:order-2 flex-shrink-0">
-                      <div className="bg-white p-2.5 rounded-xl shadow-lg">
-                        <img src={generatedQR} alt="Scan to pay" className="w-[160px] h-[160px] sm:w-24 sm:h-24 object-contain" />
-                      </div>
-                      <a href={generatedQR} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#4a5568] hover:text-[#8a95a8] transition-colors">
-                        Download QR
-                      </a>
-                    </div>
-                  )}
-                  <div className="flex-1 space-y-3 order-2 md:order-1 min-w-0">
-                    <p className="text-[11px] font-medium text-[#4a5568] uppercase tracking-wider">Payment URL</p>
-                    <div className="bg-[#0a0d12] border border-[#1e2330] rounded-xl px-4 py-3 font-mono text-[12px] text-[#6b7a90] break-all leading-relaxed">
-                      {generatedLink}
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2.5">
-                      <button 
-                        onClick={() => copyToClipboard(generatedLink!)} 
-                        className="h-10 flex-1 rounded-xl bg-white text-[#0a0d12] text-[13px] font-semibold hover:bg-white/90 active:scale-[0.97] transition-all flex items-center justify-center gap-2"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy Link
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if (!generatedLink) return;
-                          if (typeof navigator !== 'undefined' && navigator.share) {
-                            navigator.share({ title: 'Pay4Edge Payment', url: generatedLink, text: 'Pay with this link: ' })
-                              .then(() => toast({ title: 'Shared', description: 'Link shared successfully.' }))
-                              .catch((e) => { if (e?.name !== 'AbortError') copyToClipboard(generatedLink); });
-                          } else {
-                            copyToClipboard(generatedLink);
-                            const waUrl = `https://wa.me/?text=${encodeURIComponent('Pay with this link: ' + generatedLink)}`;
-                            window.open(waUrl, '_blank', 'noopener,noreferrer');
-                            toast({ title: 'Link copied', description: 'WhatsApp Web opened — send to share.' });
-                          }
-                        }}
-                        className="h-10 flex-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[13px] font-semibold hover:bg-emerald-500/15 active:scale-[0.97] transition-all flex items-center justify-center gap-2"
-                      >
-                        <Share2 className="w-4 h-4" />
-                        Share
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+      {/* Quick generate with amount removed to keep flow simple */}
 
       {/* ━━━ MAIN CONTENT: Chart (70%) + Activity (30%) ━━━ */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-5">
@@ -757,10 +622,4 @@ function ShieldCheckIcon() {
     )
 }
 
-function Loader2({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={cn("animate-spin", className)}>
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-        </svg>
-    )
-}
+// Loader2 spinner removed from dashboard (no longer needed for quick-create)

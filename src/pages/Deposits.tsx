@@ -21,8 +21,14 @@ import { StatusBadge } from "../components/ui/status-badge";
 import { GenerateLinkModal } from "../components/modals/GenerateLinkModal";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { toast } from "../hooks/use-toast";
 import { cn } from "../lib/utils";
+
+type DashboardStatsLite = {
+  totalDeposits: number;
+  totalWithdrawals: number;
+};
 
 const filterOptions = [
   { value: "all", label: "All Transactions" },
@@ -49,25 +55,38 @@ export default function Deposits() {
   const [total, setTotal] = useState(0);
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  // Default to showing only successful transactions in history
+  const [filter, setFilter] = useState("SUCCESS");
 
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [ordersRes, balanceRes] = await Promise.all([
+      const [ordersRes, balanceRes, statsRes] = await Promise.all([
         api.get<OrdersResponse>("payments", { params: filter !== "all" ? { status: filter } : {} }).catch(() => ({ success: false, orders: [], total: 0 })),
-        api.get<WalletBalance>("wallets/balance").catch(() => ({ success: false, balance: 0 })),
+        // Player: true wallet balance; Agent/Admin/Staff: business balance from dashboard stats
+        isPlayer
+          ? api.get<WalletBalance>("wallets/balance").catch(() => ({ success: false, balance: 0 }))
+          : Promise.resolve({ success: false, balance: 0 } as any),
+        !isPlayer
+          ? api.get<{ success: boolean; stats: DashboardStatsLite }>("dashboard/stats").catch(() => ({ success: false, stats: { totalDeposits: 0, totalWithdrawals: 0 } }))
+          : Promise.resolve({ success: false, stats: { totalDeposits: 0, totalWithdrawals: 0 } }),
       ]);
       
       if (ordersRes.success) {
         setOrders(ordersRes.orders);
         setTotal(ordersRes.total);
       }
-      if (balanceRes.success) setBalance(balanceRes.balance);
+      if (isPlayer) {
+        if (balanceRes.success) setBalance(balanceRes.balance);
+      } else if (statsRes.success) {
+        const stats = statsRes.stats;
+        setBalance(stats.totalDeposits - stats.totalWithdrawals);
+      }
     } finally {
       if (!silent) setLoading(false);
     }
@@ -146,15 +165,23 @@ export default function Deposits() {
 
         <div className="flex flex-wrap items-center gap-3">
           {isAgentOrStaff && (
-            <button 
-              onClick={() => setIsLinkModalOpen(true)}
-              className="bg-white/5 border border-white/10 min-h-[52px] px-6 text-sm font-black shadow-xl hover:bg-white/10 active:scale-[0.98] transition-all flex items-center gap-3 group rounded-xl"
-            >
-              <LinkIcon className="w-4 h-4 text-primary" />
-              Generate Payment Link
-            </button>
+            <>
+              <button 
+                onClick={() => setIsLinkModalOpen(true)}
+                className="bg-white/5 border border-white/10 min-h-[52px] px-6 text-sm font-black shadow-xl hover:bg-white/10 active:scale-[0.98] transition-all flex items-center gap-3 group rounded-xl"
+              >
+                <LinkIcon className="w-4 h-4 text-primary" />
+                Generate Payment Link
+              </button>
+              <button
+                onClick={() => navigate("/generated-links")}
+                className="bg-primary/10 border border-primary/40 min-h-[52px] px-5 text-xs font-black uppercase tracking-widest hover:bg-primary/20 active:scale-[0.98] transition-all flex items-center gap-2 rounded-xl text-primary"
+              >
+                <History className="w-4 h-4" />
+                Generated Links
+              </button>
+            </>
           )}
-          
         </div>
       </div>
 
@@ -279,7 +306,7 @@ export default function Deposits() {
                       </div>
                       <h4 className="text-lg font-bold">No Records Found</h4>
                       <p className="text-sm text-muted-foreground">Adjust your filters or try searching for a different term.</p>
-                      <Button variant="outline" size="sm" onClick={() => {setFilter("all"); setSearchQuery("");}} className="mt-4">Reset Filters</Button>
+                      <Button variant="outline" size="sm" onClick={() => {setFilter("SUCCESS"); setSearchQuery("");}} className="mt-4">Reset Filters</Button>
                     </div>
                   </td>
                 </tr>

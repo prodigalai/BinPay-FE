@@ -20,7 +20,7 @@ import { LogoutConfirmModal } from "../modals/LogoutConfirmModal";
 const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
-  { name: "Generated", path: "/generated-links", icon: LinkIcon, roles: ["ADMIN", "AGENT", "STAFF", "SUPPORT"] },
+  // Generated Links moved off main nav; accessible from Deposits header
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
   { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "AGENT", "PLAYER"] },
   { name: "Disputes", path: "/disputes", icon: AlertTriangle, roles: ["ADMIN", "AGENT", "SUPPORT"] },
@@ -64,13 +64,17 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => navigate("/dashboard")}>
-              <div className="h-8 sm:h-5 flex items-center justify-center">
-                <img src="/navlogo.png" alt="Pay4Edge" className="h-full w-auto object-contain hover:opacity-80 transition-opacity" />
+              <div className="h-6 sm:h-7 lg:h-8 flex items-center justify-center">
+                <img
+                  src="/navlogo.png"
+                  alt="Pay4Edge"
+                  className="h-full w-auto object-contain hover:opacity-80 transition-opacity"
+                />
               </div>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-2">
               {filteredNavItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -78,10 +82,10 @@ export function Navbar() {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300",
+                      "relative flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-widest transition-colors duration-200 border-b-2 border-transparent",
                       isActive
-                        ? "bg-primary text-black shadow-[0_0_15px_rgba(var(--primary),0.3)]"
-                        : "text-muted-foreground hover:text-white hover:bg-white/5"
+                        ? "text-primary border-primary"
+                        : "text-muted-foreground hover:text-white hover:border-white/30"
                     )}
                   >
                     <item.icon className="w-4 h-4" />

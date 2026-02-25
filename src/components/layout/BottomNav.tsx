@@ -7,7 +7,7 @@ import { useAuth } from "../../contexts/AuthContext";
 const navItems = [
   { name: "Home", path: "/dashboard", icon: LayoutDashboard },
   { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
-  { name: "Generated", path: "/generated-links", icon: LinkIcon, roles: ["ADMIN", "AGENT", "STAFF", "SUPPORT"] },
+  // Generated Links removed from bottom nav; open from Deposits header
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
   { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "AGENT", "PLAYER"] },
 ];

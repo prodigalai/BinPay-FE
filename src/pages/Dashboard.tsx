@@ -19,7 +19,11 @@ import {
   History,
   Search,
   Link as LinkIcon,
-  Edit3
+  Edit3,
+  Zap,
+  Clock,
+  RefreshCw,
+  ExternalLink
 } from "lucide-react";
 import { PerformanceChart } from "../components/charts/PerformanceChart";
 import { api } from "../lib/api";
@@ -31,6 +35,7 @@ import { StatCard } from "../components/ui/stat-card";
 import { cn } from "../lib/utils";
 
 interface DashboardStats {
+  pendingDepositCount: any;
   totalDeposits: number;
   activePlayers: number;
   totalWithdrawals: number;
@@ -71,6 +76,14 @@ interface StaffStats {
   totalPendingAmount: number;
 }
 
+interface StaffLink {
+  id: string;
+  paymentLink: string;
+  remark: string;
+  customAmount?: boolean;
+  createdAt: string;
+}
+
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
@@ -81,8 +94,8 @@ export default function Dashboard() {
   const isAgentOrStaff = ["AGENT", "STAFF", "SUPPORT", "ADMIN"].includes(user?.role || "");
   const isStaff = user?.role === "STAFF" || user?.role === "SUPPORT";
   const isAgent = user?.role === "AGENT";
-  const isAdmin = user?.role === "ADMIN"; // This is the 'Master' role
-  const isMaster = isAdmin; // Master role mapping
+  const isAdmin = user?.role === "ADMIN";
+  const isMaster = isAdmin;
   const navigate = useNavigate();
 
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -94,6 +107,7 @@ export default function Dashboard() {
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [staffStats, setStaffStats] = useState<StaffStats | null>(null);
+  const [primaryLink, setPrimaryLink] = useState<StaffLink | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -108,12 +122,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     setLoadingChart(true);
-
-    if (isStaff) {
-      // Fetch Chart Data for Staff (if endpoint supports filtering, otherwise skip for now or use generic)
-      // Assuming generic chart endpoint handles filtering by role
-    }
-
     api.get<{ success: boolean; chartData: any[] }>(`dashboard/chart?range=${chartRange}`)
       .then((r) => {
         if (r.success) setChartData(r.chartData);
@@ -123,7 +131,6 @@ export default function Dashboard() {
   }, [chartRange, isStaff]);
 
   useEffect(() => {
-    // Fetch Dashboard Stats
     if (isAgentOrStaff) {
       if (isStaff) {
          api.get<{ success: boolean; summary: StaffStats }>("dashboard/staff-links")
@@ -133,15 +140,12 @@ export default function Dashboard() {
           .catch(() => {})
           .finally(() => setLoadingStats(false));
 
-          // Also fetch activity for staff (generic activity endpoint already filters by generatedBy)
           api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
             .then((r) => {
               if (r.success) setRecentActivity(r.activities);
             })
             .catch(() => {});
-
       } else {
-        // AGENT / ADMIN
         api.get<{ success: boolean; stats: DashboardStats }>("dashboard/stats")
             .then((r) => {
             if (r.success) setDashboardStats(r.stats);
@@ -149,7 +153,6 @@ export default function Dashboard() {
             .catch(() => {})
             .finally(() => setLoadingStats(false));
         
-        // Fetch Recent Activity
         api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
             .then((r) => {
             if (r.success) setRecentActivity(r.activities);
@@ -166,13 +169,41 @@ export default function Dashboard() {
             .catch(() => {});
         };
         fetchLogs();
-        const interval = setInterval(fetchLogs, 10000); // Poll every 10s
+        const interval = setInterval(fetchLogs, 10000);
         return () => clearInterval(interval);
       }
     } else {
         setLoadingStats(false);
     }
   }, [isAgentOrStaff, isAdmin, isStaff]);
+
+  useEffect(() => {
+    if (!isAgentOrStaff) {
+      setPrimaryLink(null);
+      return;
+    }
+
+    api.get<{ success: boolean; links: StaffLink[] }>("dashboard/staff-links")
+      .then((r) => {
+        if (!r.success || !Array.isArray(r.links)) {
+          setPrimaryLink(null);
+          return;
+        }
+
+        const links = r.links;
+        if (!links.length) {
+          setPrimaryLink(null);
+          return;
+        }
+
+        const customLinks = links.filter((l) => l.customAmount);
+        const latest = (customLinks[0] ?? links[0]);
+        setPrimaryLink(latest);
+      })
+      .catch(() => {
+        setPrimaryLink(null);
+      });
+  }, [isAgentOrStaff]);
 
   const handleGenerateLink = async () => {
     if (!paymentAmount || isNaN(Number(paymentAmount)) || Number(paymentAmount) <= 0) {
@@ -203,466 +234,501 @@ export default function Dashboard() {
     toast({ title: "Copied!", description: "Link copied to your clipboard." });
   };
 
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
-    <div className="space-y-8 animate-fade-in pb-10 pt-2 sm:pt-0">
-      {/* Header Section — extra top space so title/chip don't feel cramped under navbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Dashboard</h1>
+    <div className="animate-fade-in pb-12 pt-1 sm:pt-0 max-w-[1600px] mx-auto">
+
+      {/* ━━━ HEADER ━━━ */}
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <p className="text-[13px] text-[#4f5d73] mb-1">{getGreeting()}</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-[26px] sm:text-[30px] font-semibold tracking-[-0.02em] text-white">{user?.name || "Dashboard"}</h1>
             {isAgentOrStaff && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-[10px] font-black uppercase tracking-widest text-primary w-fit">
-                <MapPin className="w-3 h-3 shrink-0" />
-                {isAdmin ? "Master Ecosystem" : (isAgent ? "Agent Node" : (isStaff ? "Staff View" : (user?.location || "Main Office")))}
-              </div>
+              <span className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider",
+                isAdmin ? "bg-violet-500/10 text-violet-400 border border-violet-500/20" :
+                isAgent ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+              )}>
+                {isAdmin ? "Master" : (isAgent ? "Agent" : "Staff")}
+              </span>
             )}
           </div>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Welcome back, <span className="text-white font-bold">{user?.name}</span>! Ready for today's operations?
-          </p>
         </div>
 
-        {!isAgentOrStaff && (
+        <div className="flex items-center gap-3">
+          {!isAgentOrStaff && (
+              <button 
+                  onClick={() => setIsDepositModalOpen(true)}
+                  className="h-10 px-5 text-[13px] font-semibold rounded-xl bg-emerald-500 text-white hover:bg-emerald-400 active:scale-[0.97] transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+              >
+                  <Plus className="w-4 h-4" />
+                  Quick Deposit
+              </button>
+          )}
+          {(isAgent || isMaster || isStaff) && (
             <button 
-                onClick={() => setIsDepositModalOpen(true)}
-                className="neon-button-accent h-14 px-8 text-sm font-black shadow-2xl shadow-accent/30 hover:scale-105 transition-all flex items-center gap-3"
+              type="button"
+              onClick={() => setCustomLinkModalOpen(true)}
+              className="h-10 px-4 rounded-xl bg-[#12151a] border border-[#1e2330] text-[#8a95a8] text-[13px] font-medium hover:border-[#2a3040] hover:text-white transition-all flex items-center gap-2"
             >
-                <Plus className="w-5 h-5 bg-black/20 rounded-lg p-0.5" />
-                Quick Deposit
+              <Edit3 className="w-3.5 h-3.5" />
+              Custom Link
             </button>
-        )}
-      </div>
+          )}
+        </div>
+      </header>
 
-      {/* Main Stats Grid */}
+      {/* ━━━ KPI CARDS ━━━ */}
       {isAgentOrStaff && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {loadingStats ? (
             [1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
+              <div key={i} className="h-[140px] rounded-2xl bg-[#12151a] border border-[#1e2330] animate-pulse">
+                <div className="p-6 space-y-4">
+                  <div className="h-3 w-20 bg-[#1e2330] rounded" />
+                  <div className="h-8 w-28 bg-[#1e2330] rounded" />
+                  <div className="h-3 w-24 bg-[#1e2330] rounded" />
+                </div>
+              </div>
             ))
           ) : (isStaff ? staffStats : dashboardStats) ? (
             <>
               {isStaff ? (
-                  // STAFF SPECIFIC STATS
                   <>
-                      <StatCard 
-                          title="Total Links" 
-                          value={staffStats?.totalLinksCreated.toLocaleString() || "0"} 
-                          icon={LinkIcon}
-                          change="Created"
-                          changeType="neutral"
-                      />
-                      <StatCard 
-                          title="Pending Amount" 
-                          value={`$${staffStats?.totalPendingAmount.toLocaleString() || "0"}`} 
-                          icon={Activity}
-                          change="Awaiting Payment"
-                          changeType="neutral"
-                      />
-                      <StatCard 
-                          title="Received Amount" 
-                          value={`$${staffStats?.totalReceivedAmount.toLocaleString() || "0"}`} 
-                          icon={TrendingUp}
-                          change="Successful Payments"
-                          changeType="positive"
-                      />
-                      <StatCard 
-                          title="Generated Amount" 
-                          value={`$${staffStats?.totalGeneratedAmount.toLocaleString() || "0"}`} 
-                          icon={DollarSign}
-                          change="Total Value"
-                          changeType="neutral"
-                      />
+                      <StatCard title="Links Created" value={staffStats?.totalLinksCreated.toLocaleString() || "0"} icon={LinkIcon} change="Total" changeType="neutral" />
+                      <StatCard title="Pending" value={`$${staffStats?.totalPendingAmount.toLocaleString() || "0"}`} icon={Clock} change="Awaiting" changeType="neutral" />
+                      <StatCard title="Received" value={`$${staffStats?.totalReceivedAmount.toLocaleString() || "0"}`} icon={TrendingUp} change="Completed" changeType="positive" />
+                      <StatCard title="Generated" value={`$${staffStats?.totalGeneratedAmount.toLocaleString() || "0"}`} icon={DollarSign} change="Total value" changeType="neutral" />
                   </>
               ) : dashboardStats && (
-                  // AGENT / ADMIN STATS
                   <>
-                    <StatCard 
-                        title="Total Deposits" 
-                        value={`$${dashboardStats.totalDeposits.toLocaleString()}`} 
-                        icon={TrendingUp}
-                        change="+12.5% this month"
-                        changeType="positive"
-                    />
-
-                    {(isAdmin || isAgent) && (
-                        <StatCard 
-                        title="Total Staff" 
-                        value={dashboardStats.totalStaff?.toLocaleString() || "0"} 
-                        icon={Users}
-                        />
-                    )}
-
-                    {isAdmin && (
-                        <StatCard 
-                        title="Total Agents" 
-                        value={dashboardStats.totalAgents?.toLocaleString() || "0"} 
-                        icon={Users}
-                        />
-                    )}
-
-                    <StatCard 
-                        title={isAdmin ? "Total Withdrawals" : "Active Players"} 
-                        value={isAdmin ? `$${dashboardStats.totalWithdrawals.toLocaleString()}` : dashboardStats.activePlayers.toLocaleString()} 
-                        icon={isAdmin ? TrendingDown : Users}
-                        change={isAdmin ? "-2.4% this month" : "+5 new today"}
-                        changeType={isAdmin ? "negative" : "positive"}
-                    />
-
-                    {isAdmin ? (
-                        null 
-                    ) : (
-                        <>
-                        <StatCard 
-                            title="Total Withdrawals" 
-                            value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} 
-                            icon={TrendingDown}
-                        />
-                        <StatCard 
-                            title="Net Volume" 
-                            value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} 
-                            icon={Activity}
-                            change="&uarr; 8.2%"
-                            changeType="positive"
-                        />
-                        </>
+                    <StatCard title="Deposits" value={`$${dashboardStats.totalDeposits.toLocaleString()}`} icon={TrendingUp} change="+12.5% this month" changeType="positive" />
+                    {isAdmin && <StatCard title="Staff" value={dashboardStats.totalStaff?.toLocaleString() || "0"} icon={Users} />}
+                    {isAdmin && <StatCard title="Agents" value={dashboardStats.totalAgents?.toLocaleString() || "0"} icon={Users} />}
+                    {isAdmin && <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} change="-2.4% this month" changeType="negative" />}
+                    {!isAdmin && (
+                      <>
+                        <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} />
+                        <StatCard title="Pending Deposits" value={dashboardStats.pendingDepositCount.toLocaleString()} icon={Clock} change="Awaiting" changeType="neutral" />
+                        <StatCard title="Net Volume" value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} icon={Activity} change="↑ 8.2%" changeType="positive" />
+                      </>
                     )}
                   </>
               )}
             </>
           ) : null}
-        </div>
+        </section>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Generator & Info */}
-        <div className="lg:col-span-2 space-y-8">
-            {/* Payment Generator Card */}
-            {(isAgent || isMaster || isStaff) && (
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8 relative overflow-hidden hover:border-white/10 transition-colors">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-                        <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <h2 className="text-xl font-black tracking-tight text-white uppercase italic">Generate Payment</h2>
-                                <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5">
-                                    <ShieldCheckIcon />
-                                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Secure</span>
-                                </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground font-medium">Create secure, one-time funding links for players</p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1 group/input min-w-0">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg group-focus-within:text-primary transition-colors">$</span>
-                            <input 
-                                autoFocus
-                                type="number" 
-                                placeholder="0.00" 
-                                value={paymentAmount}
-                                onChange={(e) => setPaymentAmount(e.target.value)}
-                                className="w-full h-14 bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 text-lg font-bold text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none transition-all"
-                            />
-                        </div>
-                        <button 
-                            onClick={handleGenerateLink}
-                            disabled={generating}
-                            className="h-14 w-full sm:w-auto sm:min-w-[140px] px-8 rounded-xl bg-primary text-black text-sm font-black uppercase tracking-widest hover:bg-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-                        >
-                            {generating ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <>
-                                    <span>Create Link</span>
-                                    <ChevronRight className="w-4 h-4" />
-                                </>
-                            )}
-                        </button>
-                        <button 
-                            type="button"
-                            onClick={() => setCustomLinkModalOpen(true)}
-                            className="h-14 w-full sm:w-auto px-6 rounded-xl bg-white/5 border-2 border-primary/40 text-primary text-sm font-black uppercase tracking-widest hover:bg-primary/10 hover:border-primary/60 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                        >
-                            <Edit3 className="w-4 h-4" />
-                            <span>Custom Amount Link</span>
-                        </button>
-                    </div>
-
-                    {(generatedLink || generatedQR) && (
-                        <div className="mt-6 sm:mt-8 animate-in slide-in-from-top-4 fade-in duration-500 border-t border-white/5 pt-6">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-4">Ready to share</p>
-                            {/* Mobile: QR first, then link + actions. Desktop: side by side */}
-                            <div className="flex flex-col md:flex-row gap-6">
-                                {/* QR — larger on mobile for easy scanning */}
-                                {generatedQR && (
-                                    <div className="flex flex-col items-center gap-2 order-first md:order-2">
-                                        <div className="flex items-center justify-center bg-white p-3 rounded-2xl shadow-lg">
-                                            <img src={generatedQR} alt="Scan to pay" className="w-[200px] h-[200px] sm:w-28 sm:h-28 md:w-24 md:h-24 object-contain" />
-                                        </div>
-                                        <a
-                                            href={generatedQR}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs font-bold text-muted-foreground hover:text-white transition-colors"
-                                        >
-                                            Save QR
-                                        </a>
-                                    </div>
-                                )}
-                                <div className="flex-1 space-y-3 order-2 md:order-1 min-w-0">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Checkout Link</span>
-                                    <div className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 font-mono text-xs text-white/80 break-all">
-                                        {generatedLink}
-                                    </div>
-                                    {/* Copy + Share — mobile: native share sheet / desktop: WhatsApp Web */}
-                                    <div className="flex flex-col sm:flex-row gap-3">
-                                        <button 
-                                            onClick={() => copyToClipboard(generatedLink!)} 
-                                            className="h-12 flex-1 rounded-xl bg-primary text-black text-sm font-black uppercase tracking-widest hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 min-h-[48px]"
-                                        >
-                                            <Copy className="w-5 h-5 shrink-0" />
-                                            Copy Link
-                                        </button>
-                                        <button 
-                                            onClick={() => {
-                                                if (!generatedLink) return;
-                                                if (typeof navigator !== 'undefined' && navigator.share) {
-                                                    navigator.share({ title: 'Pay4Edge Payment', url: generatedLink, text: 'Pay with this link: ' })
-                                                        .then(() => toast({ title: 'Shared', description: 'Link shared successfully.' }))
-                                                        .catch((e) => { if (e?.name !== 'AbortError') copyToClipboard(generatedLink); });
-                                                } else {
-                                                    copyToClipboard(generatedLink);
-                                                    const waUrl = `https://wa.me/?text=${encodeURIComponent('Pay with this link: ' + generatedLink)}`;
-                                                    window.open(waUrl, '_blank', 'noopener,noreferrer');
-                                                    toast({ title: 'Link copied', description: 'WhatsApp Web opened — send to share.' });
-                                                }
-                                            }}
-                                            className="h-12 flex-1 rounded-xl bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-400 text-sm font-black uppercase tracking-widest hover:bg-emerald-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 min-h-[48px]"
-                                        >
-                                            <Share2 className="w-5 h-5 shrink-0" />
-                                            Share (WhatsApp / Apps)
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+      {(isAgent || isMaster || isStaff) && primaryLink && (
+        <section className="mb-8">
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-[#022c22] via-[#020617] to-[#022c22] shadow-[0_0_0_1px_rgba(16,185,129,0.35)] p-5 sm:p-6">
+            <div className="absolute inset-y-0 right-[-40%] w-2/3 bg-emerald-500/10 blur-3xl pointer-events-none" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2 max-w-xl">
+                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 border border-emerald-500/30">
+                  <LinkIcon className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-[11px] font-semibold tracking-wide text-emerald-300/90">
+                    Default payment link
+                  </span>
+                  {primaryLink.customAmount && (
+                    <span className="rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-200/90">
+                      Custom amount
+                    </span>
+                  )}
                 </div>
-            )}
+                <h2 className="text-[15px] sm:text-[16px] font-semibold text-white">
+                  Share this one link with all your players.
+                </h2>
+                <p className="text-[11px] text-emerald-100/80">
+                  They open this link, enter their username, game and amount, and you get the payment in one place.
+                </p>
+              </div>
 
-            {/* Performance Chart */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8">
-                <PerformanceChart 
-                    data={chartData} 
-                    isLoading={loadingChart} 
-                    range={chartRange}
-                    onRangeChange={setChartRange}
-                />
+              <div className="w-full sm:w-[320px] space-y-2">
+                <div className="flex items-center gap-2 rounded-xl bg-black/30 border border-emerald-500/40 px-3 py-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] uppercase tracking-wide text-emerald-200/80 font-semibold mb-0.5">
+                      Your link
+                    </p>
+                    <p className="text-[11px] text-emerald-50/90 font-mono break-all">
+                      {primaryLink.paymentLink}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(primaryLink.paymentLink)}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-[13px] font-semibold text-white py-2.5 hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/20"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy link
+                  </button>
+                  <a
+                    href={primaryLink.paymentLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-transparent border border-emerald-500/40 text-emerald-200 text-[12px] font-semibold px-3 py-2 hover:bg-emerald-500/10 active:scale-[0.97] transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Open
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ━━━ QUICK GENERATE ━━━ */}
+      {(isAgent || isMaster || isStaff) && (
+        <section className="mb-8">
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#12151a] via-[#131820] to-[#12151a] border border-[#1e2330] rounded-2xl p-5 sm:p-6">
+            {/* Decorative gradient accent */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+            
+            <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+              {/* Label */}
+              <div className="flex items-center gap-3 sm:min-w-[200px]">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/10 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-[14px] font-semibold text-white">Quick Payment</p>
+                  <p className="text-[12px] text-[#4f5d73]">Generate a secure payment link</p>
+                </div>
+              </div>
+              
+              {/* Input + CTA */}
+              <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                <div className="relative flex-1 min-w-0">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4f5d73] font-medium text-[15px]">$</span>
+                  <input 
+                    type="number" 
+                    placeholder="0.00" 
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    className="w-full h-11 bg-[#0a0d12] border border-[#1e2330] rounded-xl pl-9 pr-4 text-[15px] font-medium text-white placeholder:text-[#2a3040] focus:border-emerald-500/30 focus:ring-2 focus:ring-emerald-500/10 outline-none transition-all"
+                  />
+                </div>
+                <button 
+                  onClick={handleGenerateLink}
+                  disabled={generating}
+                  className="h-11 px-6 rounded-xl bg-emerald-500 text-white text-[13px] font-semibold hover:bg-emerald-400 active:scale-[0.97] transition-all disabled:opacity-40 flex items-center justify-center gap-2 whitespace-nowrap shadow-lg shadow-emerald-500/15"
+                >
+                  {generating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Create Link</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Webhook Monitor Section (Admin Only) */}
-            {isAdmin && (
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden animate-fade-in hover:border-white/10 transition-all">
-                    <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-md font-bold text-white uppercase tracking-tight">Webhook Monitor</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Listening for events</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-0 overflow-x-auto">
-                        <table className="w-full text-left min-w-[400px]">
-                            <tbody className="divide-y divide-white/5 text-xs">
-                                {webhookLogs.slice(0, 5).length > 0 ? (
-                                    webhookLogs.slice(0, 5).map((log, i) => (
-                                        <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="font-bold text-white text-[11px]">{log.event}</span>
-                                                    <span className="text-[9px] text-muted-foreground font-mono">ID: {log.orderId.slice(-6).toUpperCase()}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className={cn(
-                                                    "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider",
-                                                    log.processed ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
-                                                )}>
-                                                    {log.processed ? (
-                                                        <>
-                                                            <div className="w-1 h-1 rounded-full bg-current" />
-                                                            Success
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="w-1 h-1 rounded-full bg-current" />
-                                                            Failed
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <span className="text-[10px] font-medium text-muted-foreground tabular-nums">
-                                                    {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={3} className="py-10 text-center opacity-30 italic text-[10px]">
-                                            No recent activity.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="p-2 border-t border-white/5 bg-white/[0.01]">
-                        <button 
-                            onClick={() => navigate('/logs')}
-                            className="w-full py-3 rounded-xl hover:bg-white/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white transition-all flex items-center justify-center gap-2"
-                        >
-                            View All Logs
-                            <ChevronRight className="w-3 h-3" />
-                        </button>
-                    </div>
+            {/* Generated link result */}
+            {(generatedLink || generatedQR) && (
+              <div className="mt-6 pt-6 border-t border-[#1e2330] animate-in slide-in-from-top-4 fade-in duration-500">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <p className="text-[12px] font-semibold text-emerald-400">Ready to share</p>
                 </div>
+                <div className="flex flex-col md:flex-row gap-5">
+                  {generatedQR && (
+                    <div className="flex flex-col items-center gap-2 order-first md:order-2 flex-shrink-0">
+                      <div className="bg-white p-2.5 rounded-xl shadow-lg">
+                        <img src={generatedQR} alt="Scan to pay" className="w-[160px] h-[160px] sm:w-24 sm:h-24 object-contain" />
+                      </div>
+                      <a href={generatedQR} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#4a5568] hover:text-[#8a95a8] transition-colors">
+                        Download QR
+                      </a>
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-3 order-2 md:order-1 min-w-0">
+                    <p className="text-[11px] font-medium text-[#4a5568] uppercase tracking-wider">Payment URL</p>
+                    <div className="bg-[#0a0d12] border border-[#1e2330] rounded-xl px-4 py-3 font-mono text-[12px] text-[#6b7a90] break-all leading-relaxed">
+                      {generatedLink}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2.5">
+                      <button 
+                        onClick={() => copyToClipboard(generatedLink!)} 
+                        className="h-10 flex-1 rounded-xl bg-white text-[#0a0d12] text-[13px] font-semibold hover:bg-white/90 active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copy Link
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (!generatedLink) return;
+                          if (typeof navigator !== 'undefined' && navigator.share) {
+                            navigator.share({ title: 'Pay4Edge Payment', url: generatedLink, text: 'Pay with this link: ' })
+                              .then(() => toast({ title: 'Shared', description: 'Link shared successfully.' }))
+                              .catch((e) => { if (e?.name !== 'AbortError') copyToClipboard(generatedLink); });
+                          } else {
+                            copyToClipboard(generatedLink);
+                            const waUrl = `https://wa.me/?text=${encodeURIComponent('Pay with this link: ' + generatedLink)}`;
+                            window.open(waUrl, '_blank', 'noopener,noreferrer');
+                            toast({ title: 'Link copied', description: 'WhatsApp Web opened — send to share.' });
+                          }
+                        }}
+                        className="h-10 flex-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[13px] font-semibold hover:bg-emerald-500/15 active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        Share
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* ━━━ MAIN CONTENT: Chart (70%) + Activity (30%) ━━━ */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-5">
+        {/* Left: Chart + Webhooks */}
+        <div className="lg:col-span-7 space-y-5">
+          {/* Chart Card */}
+          <div className="bg-gradient-to-br from-[#12151a] to-[#0e1117] border border-[#1e2330] rounded-2xl p-5 sm:p-7">
+            <PerformanceChart 
+              data={chartData} 
+              isLoading={loadingChart} 
+              range={chartRange}
+              onRangeChange={setChartRange}
+            />
+          </div>
+
+          {/* Webhook Monitor (Admin Only) */}
+          {isAdmin && (
+            <div className="bg-gradient-to-br from-[#12151a] to-[#0e1117] border border-[#1e2330] rounded-2xl overflow-hidden animate-fade-in">
+              <div className="px-6 py-4 border-b border-[#1e2330] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-violet-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-[14px] font-semibold text-white">Webhook Monitor</h3>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <p className="text-[11px] text-[#4f5d73]">Live</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[400px]">
+                  <tbody className="divide-y divide-[#1a1f2e]">
+                    {webhookLogs.slice(0, 5).length > 0 ? (
+                      webhookLogs.slice(0, 5).map((log, i) => (
+                        <tr key={i} className="hover:bg-[#141820] transition-colors">
+                          <td className="px-6 py-3.5">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[13px] font-medium text-white/80">{log.event}</span>
+                              <span className="text-[10px] text-[#3a4558] font-mono">#{log.orderId.slice(-6).toUpperCase()}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-3.5">
+                            <span className={cn(
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold",
+                              log.processed 
+                                ? "bg-emerald-500/10 text-emerald-400" 
+                                : "bg-red-500/10 text-red-400"
+                            )}>
+                              <div className="w-1 h-1 rounded-full bg-current" />
+                              {log.processed ? "Processed" : "Failed"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3.5 text-right">
+                            <span className="text-[12px] text-[#3a4558] tabular-nums font-mono">
+                              {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="py-12 text-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <Activity className="w-5 h-5 text-[#1e2330]" />
+                            <p className="text-[12px] text-[#3a4558]">No events yet</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-3 py-2 border-t border-[#1a1f2e]">
+                <button 
+                  onClick={() => navigate('/logs')}
+                  className="w-full py-2.5 rounded-xl hover:bg-[#141820] text-[12px] font-medium text-[#4a5568] hover:text-[#8a95a8] transition-all flex items-center justify-center gap-1.5"
+                >
+                  View all logs
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right Column: Activity Feed */}
-        <div className="space-y-8">
-            {/* Player Balance Card (Only for Players) */}
-            {isPlayer && (
-                <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 sm:p-8 relative overflow-hidden group hover:border-white/10 transition-colors">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-accent/20 blur-[80px] -z-10" />
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
-                            <Wallet2  className="w-6 h-6 text-black" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Wallet Balance</p>
-                            <h2 className="text-3xl font-black tracking-tighter text-white">
-                                {balance !== null ? `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"}
-                            </h2>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={() => setIsDepositModalOpen(true)}
-                        className="w-full h-14 neon-button-accent text-sm font-black uppercase tracking-widest shadow-xl shadow-accent/20"
-                    >
-                        Fund Account
-                    </button>
+        {/* Right: Activity Feed */}
+        <div className="lg:col-span-3 space-y-5">
+          {/* Player Balance Card */}
+          {isPlayer && (
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#12151a] to-[#0e1117] border border-[#1e2330] rounded-2xl p-6 transition-all hover:border-[#2a3040]">
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/10 flex items-center justify-center">
+                  <Wallet2 className="w-5 h-5 text-emerald-400" />
                 </div>
-            )}
-
-            {/* Recent Activity Feed */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden flex flex-col h-[calc(100%-100px)] min-h-[500px]">
-                <div className="p-6 border-b border-white/5">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-white tracking-tight">Activity Feed</h3>
-                        <button 
-                            onClick={() => {
-                                api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
-                                    .then((r) => {
-                                        if (r.success) setRecentActivity(r.activities);
-                                        toast({ title: "Refreshed", description: "Activity feed updated." });
-                                    })
-                                    .catch(() => {});
-                            }}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-muted-foreground hover:text-white"
-                        >
-                            <History className="w-4 h-4" />
-                        </button>
-                    </div>
-                    
-                    {/* Tabs: SUCCESS first, default selected (white) */}
-                    <div className="flex p-1 bg-black/20 rounded-xl mb-4">
-                        {(['SUCCESS', 'ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map(tab => (
-                            <button
-                                key={tab}
-                                onClick={() => setActivityTab(tab)}
-                                className={cn(
-                                    "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
-                                    activityTab === tab ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white/70"
-                                )}
-                            >
-                                {tab === 'ALL' ? 'All' : tab === 'SUCCESS' ? 'Success' : tab + 's'}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                        <input 
-                            type="text"
-                            placeholder="Search transactions..."
-                            value={activitySearch}
-                            onChange={(e) => setActivitySearch(e.target.value)}
-                            className="w-full bg-black/20 border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs font-medium text-white placeholder:text-muted-foreground/50 focus:outline-none focus:border-white/10 transition-all"
-                        />
-                    </div>
+                <div>
+                  <p className="text-[11px] font-medium text-[#4f5d73] uppercase tracking-wider">Balance</p>
+                  <h2 className="text-[26px] font-semibold tracking-tight text-white">
+                    {balance !== null ? `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"}
+                  </h2>
                 </div>
-
-                <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                    {recentActivity.filter(a => {
-                        const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
-                        const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
-                            ? (activityTab === 'SUCCESS' ? (a.status === 'SUCCESS' || a.status === 'APPROVED') : true)
-                            : a.type === activityTab;
-                        return matchesSearch && matchesTab;
-                    }).length > 0 ? (
-                        recentActivity.filter(a => {
-                            const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
-                            const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
-                                ? (activityTab === 'SUCCESS' ? a.status === 'SUCCESS' : true)
-                                : a.type === activityTab;
-                            return matchesSearch && matchesTab;
-                        }).map((activity, index) => (
-                            <div key={activity.id || index} className="group p-3 rounded-xl hover:bg-white/[0.04] transition-colors border border-transparent hover:border-white/5">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className={cn(
-                                            "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border",
-                                            activity.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/10' :
-                                            activity.status === 'FAILED' ? 'bg-red-500/10 text-red-500 border-red-500/10' :
-                                            'bg-blue-500/10 text-blue-400 border-blue-500/10'
-                                        )}>
-                                            {activity.type === 'DEPOSIT' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-xs font-bold text-white/90 truncate">{activity.title}</p>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[10px] text-muted-foreground truncate">
-                                                    {activity.user || (activity.gameUsername || activity.gameName ? [activity.gameUsername, activity.gameName].filter(Boolean).join(' · ') : 'Pay Link')}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="text-right flex-shrink-0">
-                                        <p className="text-xs font-bold text-white">
-                                            {activity.amount > 0 ? `$${activity.amount.toLocaleString()}` : ''}
-                                        </p>
-                                        <p className="text-[9px] font-medium text-muted-foreground opacity-60 mt-0.5">
-                                            {new Date(activity.date).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-40 text-center space-y-3">
-                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                                <Search className="w-5 h-5 text-muted-foreground/50" />
-                            </div>
-                            <p className="text-xs text-muted-foreground font-medium">No results found</p>
-                        </div>
-                    )}
-                </div>
+              </div>
+              <button 
+                onClick={() => setIsDepositModalOpen(true)}
+                className="w-full h-10 rounded-xl bg-emerald-500 text-white text-[13px] font-semibold hover:bg-emerald-400 active:scale-[0.97] transition-all shadow-lg shadow-emerald-500/15"
+              >
+                Fund Account
+              </button>
             </div>
+          )}
+
+          {/* Activity Feed Card */}
+          <div className="bg-gradient-to-br from-[#12151a] to-[#0e1117] border border-[#1e2330] rounded-2xl overflow-hidden flex flex-col min-h-[500px] lg:min-h-[600px]">
+            {/* Feed Header */}
+            <div className="p-5 pb-4 border-b border-[#1a1f2e]">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-[15px] font-semibold text-white">Activity</h3>
+                  <span className="text-[11px] text-[#3a4558] bg-[#1a1f2e] px-2 py-0.5 rounded-md font-medium">
+                    {recentActivity.length}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => {
+                    api.get<{ success: boolean; activities: RecentActivity[] }>("dashboard/activity")
+                      .then((r) => {
+                        if (r.success) setRecentActivity(r.activities);
+                        toast({ title: "Refreshed", description: "Activity feed updated." });
+                      })
+                      .catch(() => {});
+                  }}
+                  className="p-2 hover:bg-[#1a1f2e] rounded-lg transition-colors text-[#3a4558] hover:text-[#8a95a8]"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              
+              {/* Filter Tabs */}
+              <div className="flex p-1 bg-[#0a0d12] rounded-xl border border-[#1a1f2e] mb-3.5">
+                {(['SUCCESS', 'ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActivityTab(tab)}
+                    className={cn(
+                      "flex-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-lg transition-all duration-200",
+                      activityTab === tab 
+                        ? "bg-[#1e2330] text-white shadow-sm" 
+                        : "text-[#3a4558] hover:text-[#6b7a90]"
+                    )}
+                  >
+                    {tab === 'ALL' ? 'All' : tab === 'SUCCESS' ? 'Paid' : tab === 'DEPOSIT' ? 'In' : 'Out'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2a3040]" />
+                <input 
+                  type="text"
+                  placeholder="Search transactions…"
+                  value={activitySearch}
+                  onChange={(e) => setActivitySearch(e.target.value)}
+                  className="w-full bg-[#0a0d12] border border-[#1a1f2e] rounded-xl py-2.5 pl-9 pr-3 text-[12px] font-medium text-white placeholder:text-[#2a3040] focus:outline-none focus:border-[#2a3040] transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Feed Items */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-0.5 custom-scrollbar">
+              {recentActivity.filter(a => {
+                const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
+                const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
+                    ? (activityTab === 'SUCCESS' ? (a.status === 'SUCCESS' || a.status === 'APPROVED') : true)
+                    : a.type === activityTab;
+                return matchesSearch && matchesTab;
+              }).length > 0 ? (
+                recentActivity.filter(a => {
+                  const matchesSearch = !activitySearch || a.id?.toLowerCase().includes(activitySearch.toLowerCase()) || a.user?.toLowerCase().includes(activitySearch.toLowerCase());
+                  const matchesTab = activityTab === 'ALL' || activityTab === 'SUCCESS'
+                      ? (activityTab === 'SUCCESS' ? a.status === 'SUCCESS' : true)
+                      : a.type === activityTab;
+                  return matchesSearch && matchesTab;
+                }).map((activity, index) => (
+                  <div key={activity.id || index} className="group p-3 rounded-xl hover:bg-[#141820] transition-all duration-150 cursor-default">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border",
+                            activity.status === 'SUCCESS' 
+                              ? 'bg-emerald-500/[0.08] text-emerald-400 border-emerald-500/10' 
+                              : activity.status === 'FAILED' 
+                                ? 'bg-red-500/[0.08] text-red-400 border-red-500/10' 
+                                : 'bg-blue-500/[0.08] text-blue-400 border-blue-500/10'
+                        )}>
+                          {activity.type === 'DEPOSIT' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-medium text-white/85 truncate">{activity.title}</p>
+                          <p className="text-[11px] text-[#3a4558] truncate mt-0.5">
+                            {activity.user || (activity.gameUsername || activity.gameName ? [activity.gameUsername, activity.gameName].filter(Boolean).join(' · ') : 'Pay Link')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 pl-2">
+                        <p className={cn(
+                          "text-[13px] font-semibold tabular-nums",
+                          activity.type === 'DEPOSIT' ? "text-emerald-400" : "text-white/70"
+                        )}>
+                          {activity.amount > 0 ? `${activity.type === 'DEPOSIT' ? '+' : '-'}$${activity.amount.toLocaleString()}` : ''}
+                        </p>
+                        <p className="text-[10px] text-[#2a3040] mt-0.5 tabular-nums font-mono">
+                          {new Date(activity.date).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center h-44 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#12151a] border border-[#1e2330] flex items-center justify-center">
+                    <Search className="w-5 h-5 text-[#2a3040]" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] text-[#4a5568] font-medium">No transactions</p>
+                    <p className="text-[11px] text-[#2a3040] mt-0.5">Try adjusting your filters</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

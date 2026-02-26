@@ -31,6 +31,7 @@ import PayLinkSuccess from "./pages/PayLinkSuccess";
 import GeneratedLinks from "./pages/GeneratedLinks";
 import PayoutClaimPage from "./pages/PayoutClaimPage";
 import PayoutLinksAdmin from "./pages/PayoutLinksAdmin";
+import WithdrawRequestPage from "./pages/WithdrawRequestPage";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ function AnimatedRoutes() {
         <Route path="/generated-links" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "STAFF", "SUPPORT"]}><GeneratedLinks /></RoleRoute>} />
         <Route path="/payout-links" element={<RoleRoute allowedRoles={["ADMIN"]}><PayoutLinksAdmin /></RoleRoute>} />
         <Route path="/payout/:code" element={<PayoutClaimPage />} />
+        <Route path="/withdraw-request/:token" element={<WithdrawRequestPage />} />
         <Route path="/pay/:id" element={<PaymentPage />} />
         <Route path="/pay-link/:id" element={<PayLinkPage />} />
         <Route path="/pay-link/:id/success" element={<PayLinkSuccess />} />
@@ -89,7 +91,8 @@ function AppRoutes() {
   const isPublicPage = ["/", "/login", "/terms"].includes(location.pathname) || 
                        location.pathname.startsWith("/pay") ||
                        location.pathname.startsWith("/pay-link") ||
-                       location.pathname.startsWith("/payout/");
+                       location.pathname.startsWith("/payout/") ||
+                       location.pathname.startsWith("/withdraw-request/");
 
   return (
     <div className="min-h-screen bg-background relative">

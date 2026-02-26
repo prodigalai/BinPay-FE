@@ -21,7 +21,7 @@ import {
   Clock,
   RefreshCw,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { PerformanceChart } from "../components/charts/PerformanceChart";
 import { api } from "../lib/api";

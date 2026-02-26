@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet, Link as LinkIcon, Copy, Plus, Loader2, RefreshCw, History, CheckCircle2, Clock, XCircle, ShieldCheck } from "lucide-react";
+import { Wallet, Link as LinkIcon, Copy, Plus, Loader2, RefreshCw, History, CheckCircle2, Clock, XCircle, ShieldCheck, UserPlus, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { toast } from "../hooks/use-toast";
@@ -24,6 +24,19 @@ interface PayoutHistoryItem {
   createdAt: string;
 }
 
+interface ManualRequestItem {
+  id: string;
+  amount: number;
+  status: string;
+  requesterName?: string;
+  requesterEmail?: string;
+  tokenSent?: boolean;
+  fromLink?: boolean;
+  createdAt: string;
+  user?: { name?: string; email?: string };
+  payoutDetail?: { paypalEmail?: string };
+}
+
 export default function Withdrawals() {
   const { user } = useAuth();
   const [balance, setBalance] = useState<number | null>(null);
@@ -33,10 +46,87 @@ export default function Withdrawals() {
   const [creating, setCreating] = useState(false);
   const [amount, setAmount] = useState("");
   const [createdLink, setCreatedLink] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'history' | 'links'>('history');
+  const [activeTab, setActiveTab] = useState<'history' | 'links' | 'manual' | 'approve'>('manual');
   const [verifyingCode, setVerifyingCode] = useState<string | null>(null);
+  const [manualRequests, setManualRequests] = useState<ManualRequestItem[]>([]);
+  const [withdrawalLink, setWithdrawalLink] = useState<string | null>(null);
+  const [withdrawalLinkExpiresAt, setWithdrawalLinkExpiresAt] = useState<string | null>(null);
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [confirmTokenSent, setConfirmTokenSent] = useState<{ id: string; name: string; amount: string; checked: boolean } | null>(null);
+  const [tokenSentUpdatingId, setTokenSentUpdatingId] = useState<string | null>(null);
 
   const isAdmin = user?.role === "ADMIN";
+
+  const fetchManualRequests = () => {
+    if (!isAdmin) return;
+    api.get<{ success: boolean; requests: ManualRequestItem[] }>("withdrawals/all", { params: { source: "link" } }).then((r) => {
+      if (r.success) setManualRequests(r.requests || []);
+    }).catch(() => setManualRequests([]));
+  };
+
+  const handleGenerateWithdrawalLink = async () => {
+    setGeneratingLink(true);
+    setWithdrawalLink(null);
+    setWithdrawalLinkExpiresAt(null);
+    try {
+      const res = await api.post<{ success: boolean; link?: string; expiresAt?: string; message?: string }>("admin/withdrawal-link", {});
+      if (res.success && res.link) {
+        setWithdrawalLink(res.link);
+        if (res.expiresAt) setWithdrawalLinkExpiresAt(res.expiresAt);
+        toast({ title: "Link created", description: "Link valid for 1 hour. Share with users to request payouts." });
+      }
+    } catch (err) {
+      toast({ title: "Failed to create link", variant: "destructive" });
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
+
+  const handleApproveRequest = async (id: string) => {
+    setApprovingId(id);
+    try {
+      const res = await api.put<{ success: boolean }>(`withdrawals/${id}`, { status: "APPROVED", confirmApproval: true });
+      if (res.success) {
+        toast({ title: "Approved", description: "Payout request approved." });
+        setConfirmApproveId(null);
+        fetchManualRequests();
+      }
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Approve failed", variant: "destructive" });
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const handleRejectRequest = async (id: string) => {
+    setRejectingId(id);
+    try {
+      await api.put(`withdrawals/${id}`, { status: "REJECTED", reviewNote: "Rejected from Manual Payout" });
+      toast({ title: "Rejected" });
+      fetchManualRequests();
+    } catch (err) {
+      toast({ title: "Reject failed", variant: "destructive" });
+    } finally {
+      setRejectingId(null);
+    }
+  };
+
+  const handleTokenSent = async (id: string, checked: boolean) => {
+    setTokenSentUpdatingId(id);
+    setConfirmTokenSent(null);
+    try {
+      await api.patch(`withdrawals/${id}/token-sent`, { tokenSent: checked });
+      toast({ title: checked ? "Marked as token sent" : "Token sent unmarked" });
+      fetchManualRequests();
+    } catch {
+      toast({ title: "Update failed", variant: "destructive" });
+    } finally {
+      setTokenSentUpdatingId(null);
+    }
+  };
 
   const handleVerifyPayout = async (linkCode: string) => {
     setVerifyingCode(linkCode);
@@ -95,6 +185,10 @@ export default function Withdrawals() {
       setLoading(false);
     }
   }, [isAdmin]);
+
+  useEffect(() => {
+    if (isAdmin && (activeTab === 'approve' || activeTab === 'manual')) fetchManualRequests();
+  }, [isAdmin, activeTab]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,41 +298,26 @@ export default function Withdrawals() {
         <p className="text-[10px] text-muted-foreground mt-1">Total Balance. Deducted only when payout is sent to the receiver; refunded if payout fails.</p>
       </div>
 
-      {/* Create link */}
+      {/* Withdrawal request link — above tabs so it's always visible */}
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 sm:p-8">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <LinkIcon className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Create payout link</h2>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Share the link — user opens it and enters their own PayPal email.</p>
-          </div>
+          <UserPlus className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-white">Withdrawal request link</h2>
         </div>
-        <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-4">
-          <div className="min-w-[160px] flex-1">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Amount (USD)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className={inputClass}
-            />
-          </div>
-          <Button type="submit" disabled={creating || (balance ?? 0) < 0.01} className="h-12 px-6">
-            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-2" /> Create link</>}
-          </Button>
-        </form>
-        {createdLink && (
+        <p className="text-xs text-muted-foreground mb-4">Generate a time-limited link (1 hour). Multiple users can submit payout requests via this link before it expires. After expiry, generate a new link.</p>
+        <Button type="button" onClick={handleGenerateWithdrawalLink} disabled={generatingLink} className="gap-2">
+          {generatingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          Generate link
+        </Button>
+        {withdrawalLink && (
           <div className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-2">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">User link kahan open karega?</p>
-            <p className="text-xs text-muted-foreground">Copy karke user ko WhatsApp, Email ya SMS se bhejo. User wahi link browser mein open karega.</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Share this link</p>
+            {withdrawalLinkExpiresAt && (
+              <p className="text-xs text-amber-200/90">Expires at {new Date(withdrawalLinkExpiresAt).toLocaleString()}. New link can be generated after expiry.</p>
+            )}
             <div className="flex flex-wrap items-center gap-3">
-              <input readOnly value={createdLink} className="flex-1 min-w-0 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white truncate" />
-              <Button type="button" variant="outline" size="sm" onClick={() => copyLink(createdLink)}>
+              <input readOnly value={withdrawalLink} className="flex-1 min-w-0 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white truncate" />
+              <Button type="button" variant="outline" size="sm" onClick={() => copyLink(withdrawalLink)}>
                 <Copy className="w-4 h-4 mr-2" /> Copy
               </Button>
             </div>
@@ -247,11 +326,33 @@ export default function Withdrawals() {
       </div>
 
       {/* TABS */}
-      <div className="flex p-1 bg-white/[0.02] border border-white/10 rounded-xl max-w-sm mb-2">
+      <div className="flex flex-wrap gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-2">
+        <button
+          onClick={() => setActiveTab('manual')}
+          className={cn(
+            "flex-1 min-w-[90px] py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
+            activeTab === 'manual'
+              ? "bg-primary/20 text-primary shadow-sm"
+              : "text-muted-foreground hover:text-white"
+          )}
+        >
+          Manual Payout
+        </button>
+        <button
+          onClick={() => setActiveTab('approve')}
+          className={cn(
+            "flex-1 min-w-[90px] py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
+            activeTab === 'approve'
+              ? "bg-primary/20 text-primary shadow-sm"
+              : "text-muted-foreground hover:text-white"
+          )}
+        >
+          Approve Requests
+        </button>
         <button
           onClick={() => setActiveTab('history')}
           className={cn(
-            "flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
+            "flex-1 min-w-[90px] py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
             activeTab === 'history'
               ? "bg-primary/20 text-primary shadow-sm"
               : "text-muted-foreground hover:text-white"
@@ -262,7 +363,7 @@ export default function Withdrawals() {
         <button
           onClick={() => setActiveTab('links')}
           className={cn(
-            "flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
+            "flex-1 min-w-[90px] py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
             activeTab === 'links'
               ? "bg-primary/20 text-primary shadow-sm"
               : "text-muted-foreground hover:text-white"
@@ -273,7 +374,160 @@ export default function Withdrawals() {
       </div>
 
       {/* TAB CONTENT */}
-      {activeTab === 'history' ? (
+      {activeTab === 'manual' ? (
+        <div className="space-y-6">
+          {/* Create payout link — inside Manual Payout tab */}
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <LinkIcon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Create payout link</h2>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Share the link — user opens it and enters their own PayPal email.</p>
+              </div>
+            </div>
+            <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-4">
+              <div className="min-w-[160px] flex-1">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Amount (USD)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <Button type="submit" disabled={creating || (balance ?? 0) < 0.01} className="h-12 px-6">
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-2" /> Create link</>}
+              </Button>
+            </form>
+            {createdLink && (
+              <div className="mt-4 p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Share this link</p>
+                <p className="text-xs text-muted-foreground">Copy and send to user via WhatsApp, Email or SMS. User opens the link in browser and enters their PayPal email.</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <input readOnly value={createdLink} className="flex-1 min-w-0 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white truncate" />
+                  <Button type="button" variant="outline" size="sm" onClick={() => copyLink(createdLink)}>
+                    <Copy className="w-4 h-4 mr-2" /> Copy
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : activeTab === 'approve' ? (
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] overflow-hidden">
+          <div className="p-5 sm:p-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white">Approve Requests</h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Payout requests from the withdrawal link. Approve, reject, or mark token sent.</p>
+              </div>
+            </div>
+          </div>
+          {manualRequests.length === 0 ? (
+            <div className="p-12 text-center">
+              <History className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground font-medium">No requests yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Share the withdrawal request link above. Requests will appear here.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[640px]">
+                <thead>
+                  <tr className="bg-white/[0.04] border-b border-white/10">
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Date</th>
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Name</th>
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">PayPal</th>
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Amount</th>
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Token sent</th>
+                    <th className="py-3.5 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {manualRequests.map((r) => (
+                    <tr key={r.id} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+                      <td className="py-3.5 px-4 text-xs text-muted-foreground whitespace-nowrap">{new Date(r.createdAt).toLocaleString()}</td>
+                      <td className="py-3.5 px-4 text-sm font-medium text-white">{r.requesterName || (r.user as any)?.name || "—"}</td>
+                      <td className="py-3.5 px-4 text-xs font-mono text-muted-foreground">{(r.requesterEmail || (r.payoutDetail as any)?.paypalEmail || "").slice(0, 3)}***</td>
+                      <td className="py-3.5 px-4 text-sm font-bold text-white">${Number(r.amount).toFixed(2)}</td>
+                      <td className="py-3.5 px-4">
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase",
+                          r.status === "COMPLETED" ? "bg-emerald-500/15 text-emerald-400" : r.status === "REJECTED" || r.status === "FAILED" ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"
+                        )}>{r.status}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {r.status === "PENDING" || r.status === "COMPLETED" ? (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmTokenSent({
+                              id: r.id,
+                              name: r.requesterName || (r.user as any)?.name || "—",
+                              amount: `$${Number(r.amount).toFixed(2)}`,
+                              checked: !r.tokenSent,
+                            })}
+                            disabled={tokenSentUpdatingId === r.id}
+                            className={cn(
+                              "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[11px] font-semibold uppercase transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-0 focus:ring-offset-transparent disabled:opacity-50",
+                              r.tokenSent
+                                ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25"
+                                : "border-white/20 bg-white/5 text-muted-foreground hover:border-white/30 hover:bg-white/10 hover:text-white"
+                            )}
+                          >
+                            {tokenSentUpdatingId === r.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : r.tokenSent ? (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            ) : (
+                              <Clock className="w-3.5 h-3.5" />
+                            )}
+                            {r.tokenSent ? "Sent" : "Mark sent"}
+                          </button>
+                        ) : (
+                          <span className="text-muted-foreground/60">—</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        {r.status === "PENDING" && (
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="h-8 text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30"
+                              disabled={approvingId === r.id}
+                              onClick={() => setConfirmApproveId(r.id)}
+                            >
+                              {approvingId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Approve"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-[10px] font-bold uppercase border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              disabled={rejectingId === r.id}
+                              onClick={() => handleRejectRequest(r.id)}
+                            >
+                              {rejectingId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Reject"}
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : activeTab === 'history' ? (
         <div className="rounded-3xl border border-white/10 bg-white/[0.02] overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-white/5 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" />
@@ -358,6 +612,56 @@ export default function Withdrawals() {
             ))}
           </ul>
         )}
+        </div>
+      )}
+
+      {/* Confirm approval modal (for Approve Requests tab) */}
+      {confirmApproveId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmApproveId(null)}>
+          <div className="rounded-2xl border border-white/10 bg-[#0a0d12] p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+              <h3 className="text-base font-bold text-white">Confirm approval</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">Verify payout details, then approve. Mark &quot;Token sent&quot; after you send the payment.</p>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={() => confirmApproveId && handleApproveRequest(confirmApproveId)} disabled={approvingId === confirmApproveId}>
+                {approvingId === confirmApproveId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, approve"}
+              </Button>
+              <Button variant="outline" onClick={() => setConfirmApproveId(null)}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm token sent modal */}
+      {confirmTokenSent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmTokenSent(null)}>
+          <div className="rounded-2xl border border-white/10 bg-[#0a0d12] p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <h3 className="text-base font-bold text-white">
+                {confirmTokenSent.checked ? "Mark token sent?" : "Unmark token sent?"}
+              </h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">
+              {confirmTokenSent.checked
+                ? "Confirm that you have sent the payout for this request."
+                : "This will unmark token sent for this request."}
+            </p>
+            <p className="text-xs text-muted-foreground/80 mb-4">
+              {confirmTokenSent.name} · {confirmTokenSent.amount}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => confirmTokenSent && handleTokenSent(confirmTokenSent.id, confirmTokenSent.checked)}
+              >
+                {confirmTokenSent.checked ? "Yes, marked sent" : "Yes, unmark"}
+              </Button>
+              <Button variant="outline" onClick={() => setConfirmTokenSent(null)}>Cancel</Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

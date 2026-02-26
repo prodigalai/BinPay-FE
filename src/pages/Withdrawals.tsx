@@ -28,10 +28,12 @@ interface ManualRequestItem {
   id: string;
   amount: number;
   status: string;
+  payoutMethod?: string;
   requesterName?: string;
   requesterEmail?: string;
   tokenSent?: boolean;
   fromLink?: boolean;
+  payoutBatchId?: string | null;
   createdAt: string;
   user?: { name?: string; email?: string };
   payoutDetail?: { paypalEmail?: string };
@@ -57,14 +59,22 @@ export default function Withdrawals() {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [confirmTokenSent, setConfirmTokenSent] = useState<{ id: string; name: string; amount: string; checked: boolean } | null>(null);
   const [tokenSentUpdatingId, setTokenSentUpdatingId] = useState<string | null>(null);
+  const [sendingPayoutId, setSendingPayoutId] = useState<string | null>(null);
+  const [verifyingRequestId, setVerifyingRequestId] = useState<string | null>(null);
 
   const isAdmin = user?.role === "ADMIN";
+
+  const getErrorMessage = (err: unknown): string =>
+    err instanceof Error ? err.message : typeof err === "string" ? err : "Something went wrong";
 
   const fetchManualRequests = () => {
     if (!isAdmin) return;
     api.get<{ success: boolean; requests: ManualRequestItem[] }>("withdrawals/all", { params: { source: "link" } }).then((r) => {
       if (r.success) setManualRequests(r.requests || []);
-    }).catch(() => setManualRequests([]));
+    }).catch((err) => {
+      setManualRequests([]);
+      toast({ title: "Could not load requests", description: getErrorMessage(err), variant: "destructive" });
+    });
   };
 
   const handleGenerateWithdrawalLink = async () => {
@@ -77,9 +87,11 @@ export default function Withdrawals() {
         setWithdrawalLink(res.link);
         if (res.expiresAt) setWithdrawalLinkExpiresAt(res.expiresAt);
         toast({ title: "Link created", description: "Link valid for 1 hour. Share with users to request payouts." });
+      } else {
+        toast({ title: "Could not create link", description: (res as { message?: string }).message, variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Failed to create link", variant: "destructive" });
+      toast({ title: "Failed to create link", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setGeneratingLink(false);
     }
@@ -88,14 +100,17 @@ export default function Withdrawals() {
   const handleApproveRequest = async (id: string) => {
     setApprovingId(id);
     try {
-      const res = await api.put<{ success: boolean }>(`withdrawals/${id}`, { status: "APPROVED", confirmApproval: true });
+      const res = await api.put<{ success: boolean; message?: string }>(`withdrawals/${id}`, { status: "APPROVED", confirmApproval: true });
       if (res.success) {
-        toast({ title: "Approved", description: "Payout request approved." });
+        toast({ title: "Approved", description: "Balance deducted. Send payment manually and mark Token sent." });
         setConfirmApproveId(null);
         fetchManualRequests();
+        fetchBalance();
+      } else {
+        toast({ title: "Approve failed", description: res.message, variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Approve failed", variant: "destructive" });
+      toast({ title: "Approve failed", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setApprovingId(null);
     }
@@ -105,10 +120,10 @@ export default function Withdrawals() {
     setRejectingId(id);
     try {
       await api.put(`withdrawals/${id}`, { status: "REJECTED", reviewNote: "Rejected from Manual Payout" });
-      toast({ title: "Rejected" });
+      toast({ title: "Rejected", description: "Request declined." });
       fetchManualRequests();
     } catch (err) {
-      toast({ title: "Reject failed", variant: "destructive" });
+      toast({ title: "Reject failed", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setRejectingId(null);
     }
@@ -121,10 +136,49 @@ export default function Withdrawals() {
       await api.patch(`withdrawals/${id}/token-sent`, { tokenSent: checked });
       toast({ title: checked ? "Marked as token sent" : "Token sent unmarked" });
       fetchManualRequests();
-    } catch {
-      toast({ title: "Update failed", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Update failed", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setTokenSentUpdatingId(null);
+    }
+  };
+
+  /** Send PayPal payout (COMPLETED with no batch yet, or FAILED retry). Blocked for link-based requests (manual payout). */
+  const handleSendPayout = async (id: string) => {
+    setSendingPayoutId(id);
+    try {
+      const res = await api.post<{ success: boolean; message?: string; batchId?: string }>(`withdrawals/${id}/send-payout`, {});
+      if (res.success) {
+        toast({ title: "Payout sent", description: res.message || "Money sent via PayPal." });
+        fetchManualRequests();
+        fetchBalance();
+      } else {
+        toast({ title: "Send payout failed", description: (res as { message?: string }).message, variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Send payout failed", description: getErrorMessage(err), variant: "destructive" });
+    } finally {
+      setSendingPayoutId(null);
+    }
+  };
+
+  /** Verify withdrawal request payout status from PayPal; if failed, request becomes FAILED and Send payout shows. */
+  const handleVerifyRequestPayout = async (id: string) => {
+    setVerifyingRequestId(id);
+    try {
+      const res = await api.post<{ success: boolean; status?: string; message?: string }>(`withdrawals/${id}/verify-payout`, {});
+      fetchManualRequests();
+      if (res.success) {
+        toast({ title: res.status === "completed" ? "Verified: Sent" : res.status === "failed" ? "Verified: Failed" : "Status checked", description: res.message });
+      } else if (res.status === "processing") {
+        toast({ title: "Still processing", description: res.message, variant: "destructive" });
+      } else {
+        toast({ title: "Verify failed", description: res.message, variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Verify failed", description: getErrorMessage(err), variant: "destructive" });
+    } finally {
+      setVerifyingRequestId(null);
     }
   };
 
@@ -132,14 +186,16 @@ export default function Withdrawals() {
     setVerifyingCode(linkCode);
     try {
       const res = await api.post<{ success: boolean; status?: string; message?: string }>("admin/payout-verify", { linkCode });
+      fetchPayoutHistory();
       if (res.success) {
         toast({ title: res.status === "completed" ? "Verified: Completed" : res.status === "failed" ? "Verified: Failed" : "Status checked", description: res.message });
-        fetchPayoutHistory();
+      } else if (res.status === "processing") {
+        toast({ title: "Still processing", description: res.message, variant: "destructive" });
       } else {
         toast({ title: "Verify failed", description: (res as { message?: string }).message, variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "Verify failed", description: err instanceof Error ? err.message : "Could not verify from PayPal", variant: "destructive" });
+      toast({ title: "Verify failed", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setVerifyingCode(null);
     }
@@ -218,8 +274,8 @@ export default function Withdrawals() {
       } else {
         toast({ title: (res as { message?: string }).message || "Failed to create link", variant: "destructive" });
       }
-    } catch (err: unknown) {
-      toast({ title: err instanceof Error ? err.message : "Failed to create link", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Failed to create link", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setCreating(false);
     }
@@ -462,10 +518,10 @@ export default function Withdrawals() {
                         <span className={cn(
                           "inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase",
                           r.status === "COMPLETED" ? "bg-emerald-500/15 text-emerald-400" : r.status === "REJECTED" || r.status === "FAILED" ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"
-                        )}>{r.status}</span>
+                        )}>{r.status === "PROCESSING" ? "Processing" : r.status}</span>
                       </td>
                       <td className="py-3.5 px-4">
-                        {r.status === "PENDING" || r.status === "COMPLETED" ? (
+                        {r.status === "PENDING" || r.status === "COMPLETED" || r.status === "PROCESSING" ? (
                           <button
                             type="button"
                             onClick={() => setConfirmTokenSent({
@@ -517,6 +573,31 @@ export default function Withdrawals() {
                             >
                               {rejectingId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Reject"}
                             </Button>
+                          </div>
+                        )}
+                        {(r.status === "COMPLETED" || r.status === "FAILED" || r.status === "PROCESSING") && (r.payoutMethod || "").toUpperCase() === "PAYPAL" && (
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-[10px] font-bold uppercase"
+                              disabled={verifyingRequestId === r.id}
+                              onClick={() => handleVerifyRequestPayout(r.id)}
+                            >
+                              {verifyingRequestId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Verify</>}
+                            </Button>
+                            {!r.fromLink && ((r.status === "COMPLETED" && !r.payoutBatchId) || r.status === "FAILED") && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                className="h-8 text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30"
+                                disabled={sendingPayoutId === r.id}
+                                onClick={() => handleSendPayout(r.id)}
+                              >
+                                {sendingPayoutId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Send payout"}
+                              </Button>
+                            )}
                           </div>
                         )}
                       </td>

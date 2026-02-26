@@ -61,10 +61,11 @@ export default function WithdrawRequestPage() {
         setSubmitted(true);
         toast({ title: "Request submitted", description: res.message });
       } else {
-        toast({ title: (res as { message?: string }).message || "Failed", variant: "destructive" });
+        toast({ title: "Request failed", description: (res as { message?: string }).message, variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: err instanceof Error ? err.message : "Request failed", variant: "destructive" });
+      const msg = err instanceof Error ? err.message : "Request failed";
+      toast({ title: "Request failed", description: msg, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }

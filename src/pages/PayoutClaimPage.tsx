@@ -65,7 +65,8 @@ export default function PayoutClaimPage() {
         )
         .then((res) => {
           if (cancelled) return;
-          if (res.success && res.status) {
+          // Use status whenever present (success: false for processing/UNCLAIMED so we still show status + message)
+          if (res.status) {
             const s = res.status as "processing" | "completed" | "failed";
             setPayoutStatus(s);
             setPayoutMessage(res.message || "");
@@ -128,11 +129,12 @@ export default function PayoutClaimPage() {
         setPayoutMessage("Processing your payout...");
         toast({ title: "Payout submitted", description: "Checking status..." });
       } else {
-        toast({ title: (res as { message?: string }).message || "Submission failed", variant: "destructive" });
+        const msg = (res as { message?: string }).message || "Submission failed";
+        toast({ title: "Submission failed", description: msg, variant: "destructive" });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Submission failed";
-      toast({ title: msg, variant: "destructive" });
+      toast({ title: "Submission failed", description: msg, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }

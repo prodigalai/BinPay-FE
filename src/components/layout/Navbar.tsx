@@ -22,7 +22,7 @@ const navItems = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { name: "Deposits", path: "/deposits", icon: Wallet, roles: ["ADMIN", "AGENT", "PLAYER"] },
   { name: "Staff", path: "/staff", icon: UserCog, roles: ["ADMIN", "AGENT"] },
-  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "PLAYER"] },
+  { name: "Withdrawals", path: "/withdrawals", icon: ArrowUpRight, roles: ["ADMIN", "PLAYER", "AGENT"] },
   { name: "Disputes", path: "/disputes", icon: AlertTriangle, roles: ["ADMIN", "AGENT", "SUPPORT"] },
 ];
 

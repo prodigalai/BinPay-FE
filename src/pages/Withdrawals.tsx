@@ -63,7 +63,8 @@ export default function Withdrawals() {
   const [verifyingRequestId, setVerifyingRequestId] = useState<string | null>(null);
 
   const isAdmin = user?.role === "ADMIN";
-  const canManageRequests = user?.role === "ADMIN" || user?.role === "AGENT";
+  const isPayoutOwner = user?.role === "ADMIN" || user?.role === "AGENT";
+  const canManageRequests = isPayoutOwner;
 
   const fetchManualRequests = () => {
     if (!canManageRequests) return;
@@ -283,7 +284,8 @@ export default function Withdrawals() {
   const inputClass =
     "w-full h-12 bg-white/[0.04] border border-white/10 rounded-xl px-4 text-sm font-semibold text-white placeholder:text-white/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all";
 
-  if (!isAdmin) {
+  // Only Admin/Agent should see withdrawals UI. Others see the admin-only message.
+  if (!isPayoutOwner) {
     return (
       <div className="space-y-6 animate-fade-in max-w-6xl mx-auto">
         <div>

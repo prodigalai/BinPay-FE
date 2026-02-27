@@ -184,7 +184,7 @@ export default function Withdrawals() {
   };
 
   const fetchBalance = () => {
-    if (!isAdmin) return;
+    if (!isPayoutOwner) return;
     api.get<{ success: boolean; balance: number }>("admin/payout-balance").then((r) => {
       if (r.success) setBalance(r.balance);
     }).catch(() => setBalance(0));
@@ -208,12 +208,10 @@ export default function Withdrawals() {
     setLoading(true);
     if (isAdmin) {
       Promise.all([
-        api.get<{ success: boolean; balance: number }>("admin/payout-balance"),
         api.get<{ success: boolean; links: PayoutLinkItem[] }>("admin/payout-links"),
         api.get<{ success: boolean; history: PayoutHistoryItem[] }>("admin/payout-history"),
       ])
-        .then(([balanceRes, linksRes, historyRes]) => {
-          if (balanceRes.success) setBalance(balanceRes.balance);
+        .then(([linksRes, historyRes]) => {
           if (linksRes.success) setLinks(linksRes.links || []);
           if (historyRes.success) setPayoutHistory(historyRes.history || []);
         })
@@ -226,7 +224,11 @@ export default function Withdrawals() {
 
   useEffect(() => {
     if (canManageRequests && (activeTab === 'approve' || activeTab === 'manual')) fetchManualRequests();
-  }, [isAdmin, activeTab]);
+  }, [canManageRequests, activeTab]);
+
+  useEffect(() => {
+    if (isPayoutOwner) fetchBalance();
+  }, [isPayoutOwner]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

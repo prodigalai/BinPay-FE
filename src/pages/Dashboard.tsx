@@ -287,7 +287,22 @@ export default function Dashboard() {
                   {!isAdmin && (
                     <>
                       <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} />
-                      <StatCard title="Pending Deposits" value={dashboardStats.pendingDepositCount.toLocaleString()} icon={Clock} change="Awaiting" changeType="neutral" />
+                      {isAgent ? (
+                        <StatCard
+                          title="Total Balance"
+                          value={balance !== null ? `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"}
+                          icon={Wallet2}
+                          description="Your current wallet balance (use for payouts)"
+                        />
+                      ) : (
+                        <StatCard
+                          title="Pending Deposits"
+                          value={dashboardStats.pendingDepositCount.toLocaleString()}
+                          icon={Clock}
+                          change="Awaiting"
+                          changeType="neutral"
+                        />
+                      )}
                       <StatCard title="Net Volume" value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} icon={Activity} change="↑ 8.2%" changeType="positive" />
                     </>
                   )}

@@ -331,7 +331,7 @@ export default function PayoutClaimPage() {
           </form>
         </div>
         <p className="text-[8px] text-center text-muted-foreground/50 mt-4">
-          Details are taken from you only when you open this link. We do not store your PayPal email.
+          We store your PayPal email only for this payout and audit logs; it will not be reused for marketing.
         </p>
       </div>
     </div>

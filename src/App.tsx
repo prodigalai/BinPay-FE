@@ -70,7 +70,7 @@ function AnimatedRoutes() {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/withdrawals" element={<RoleRoute allowedRoles={["ADMIN", "PLAYER"]}><Withdrawals /></RoleRoute>} />
+        <Route path="/withdrawals" element={<RoleRoute allowedRoles={["ADMIN", "PLAYER", "AGENT"]}><Withdrawals /></RoleRoute>} />
         <Route path="/logs" element={<RoleRoute allowedRoles={["ADMIN"]}><Logs /></RoleRoute>} />
         <Route path="/generated-links" element={<RoleRoute allowedRoles={["ADMIN", "AGENT", "STAFF", "SUPPORT"]}><GeneratedLinks /></RoleRoute>} />
         <Route path="/payout-links" element={<RoleRoute allowedRoles={["ADMIN"]}><PayoutLinksAdmin /></RoleRoute>} />

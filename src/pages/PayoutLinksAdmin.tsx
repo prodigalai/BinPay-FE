@@ -159,7 +159,7 @@ export default function PayoutLinksAdmin() {
           ${(balance ?? 0).toFixed(2)}
           <span className="text-sm font-normal text-muted-foreground ml-2">USD</span>
         </p>
-        <p className="text-[10px] text-muted-foreground mt-1">This balance is deducted when you create a payout link. Refunded if payout fails.</p>
+        <p className="text-[10px] text-muted-foreground mt-1">Balance is deducted when the recipient submits the link. Refunded automatically if the payout fails.</p>
         <form onSubmit={handleAddBalance} className="flex flex-wrap items-center gap-2 mt-3">
           <input
             type="number"

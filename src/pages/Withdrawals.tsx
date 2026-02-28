@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Wallet, Link as LinkIcon, Copy, Plus, Loader2, RefreshCw, History, CheckCircle2, Clock, XCircle, ShieldCheck, UserPlus, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
@@ -41,6 +42,13 @@ interface ManualRequestItem {
 
 export default function Withdrawals() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if ((user?.email || "").toLowerCase() === "payments@pay4edge.com") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user?.email, navigate]);
+  if ((user?.email || "").toLowerCase() === "payments@pay4edge.com") return null;
   const [balance, setBalance] = useState<number | null>(null);
   const [links, setLinks] = useState<PayoutLinkItem[]>([]);
   const [payoutHistory, setPayoutHistory] = useState<PayoutHistoryItem[]>([]);

@@ -54,7 +54,9 @@ export function Navbar() {
 
   const filteredNavItems = navItems.filter((item) => {
     if (!item.roles) return true;
-    return user?.role && item.roles.includes(user.role);
+    if (!user?.role || !item.roles.includes(user.role)) return false;
+    if (item.path === "/withdrawals" && (user?.email || "").toLowerCase() === "payments@pay4edge.com") return false;
+    return true;
   });
 
   return (

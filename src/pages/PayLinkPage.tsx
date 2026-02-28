@@ -5,6 +5,8 @@ import { api } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
 
+const SPECIAL_LINK_CREATORS = ['sam@pay4edge.com', 'payments@pay4edge.com'];
+
 interface LinkDetails {
   amount: number;
   amountCharged: number;
@@ -13,6 +15,7 @@ interface LinkDetails {
   currency: string;
   agentName: string;
   customAmount?: boolean;
+  generatorEmail?: string;
 }
 
 export default function PayLinkPage() {
@@ -38,6 +41,10 @@ export default function PayLinkPage() {
     }
   }, [id]);
 
+  const isSpecialCreator = details?.generatorEmail
+    ? SPECIAL_LINK_CREATORS.includes((details.generatorEmail as string).toLowerCase())
+    : false;
+
   const validate = (): boolean => {
     const e: { gameUsername?: string; gameName?: string; amount?: string } = {};
     if (details?.customAmount) {
@@ -45,10 +52,12 @@ export default function PayLinkPage() {
       if (!amountInput.trim() || isNaN(amt) || amt < 1) e.amount = "Enter amount (min $1)";
       else if (amt > 50000) e.amount = "Max $50,000";
     }
-    if (!gameUsername.trim()) e.gameUsername = "Required";
-    else if (gameUsername.trim().length > 100) e.gameUsername = "Max 100 chars";
-    if (!gameName.trim()) e.gameName = "Required";
+    if (!gameName.trim()) e.gameName = isSpecialCreator ? "Customer Name is required" : "Required";
     else if (gameName.trim().length > 100) e.gameName = "Max 100 chars";
+    if (!isSpecialCreator) {
+      if (!gameUsername.trim()) e.gameUsername = "Required";
+      else if (gameUsername.trim().length > 100) e.gameUsername = "Max 100 chars";
+    } else if (gameUsername.trim().length > 100) e.gameUsername = "Max 100 chars";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -234,15 +243,17 @@ export default function PayLinkPage() {
                   </div>
                 )}
 
-                {/* Game Name */}
+                {/* Game Name / Customer Name */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between pl-1">
-                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">Platform / Game</label>
+                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                      {isSpecialCreator ? "Customer Name" : "Platform / Game"}
+                    </label>
                     <Gamepad2 className="w-2.5 h-2.5 text-muted-foreground/30 shrink-0" />
                   </div>
                   <input
                     type="text"
-                    placeholder="e.g. PUBG, FREE FIRE"
+                    placeholder={isSpecialCreator ? "Enter your name" : "e.g. PUBG, FREE FIRE"}
                     value={gameName}
                     onChange={(e) => { setGameName(e.target.value); setErrors(prev => ({ ...prev, gameName: undefined })); }}
                     className={`w-full min-h-[44px] h-11 sm:h-10 bg-white/[0.03] border rounded-xl px-3 text-base sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 touch-manipulation ${errors.gameName ? 'border-red-500/50' : 'border-white/5'}`}
@@ -256,20 +267,22 @@ export default function PayLinkPage() {
                   )}
                 </div>
 
-                {/* Username */}
+                {/* Username / Reference Notes */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between pl-1">
-                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">Player ID / Username</label>
+                    <label className="text-[10px] sm:text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                      {isSpecialCreator ? "Reference Notes (optional)" : "Player ID / Username"}
+                    </label>
                     <UserIcon className="w-2.5 h-2.5 text-muted-foreground/30 shrink-0" />
                   </div>
                   <input
                     type="text"
-                    placeholder="Enter your game ID"
+                    placeholder={isSpecialCreator ? "e.g. Order #123, notes for recipient" : "Enter your game ID"}
                     value={gameUsername}
                     onChange={(e) => { setGameUsername(e.target.value); setErrors(prev => ({ ...prev, gameUsername: undefined })); }}
                     className={`w-full min-h-[44px] h-11 sm:h-10 bg-white/[0.03] border rounded-xl px-3 text-base sm:text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/20 touch-manipulation ${errors.gameUsername ? 'border-red-500/50' : 'border-white/5'}`}
                     maxLength={100}
-                    required
+                    required={!isSpecialCreator}
                   />
                   {errors.gameUsername && (
                     <p className="text-[8px] font-bold text-red-500 flex items-center gap-1 pl-1">

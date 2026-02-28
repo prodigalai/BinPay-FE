@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  Download,
+  Loader2,
   Copy,
   HelpCircle,
   TrendingUp,
@@ -95,6 +95,8 @@ export default function Dashboard() {
   const isAdmin = user?.role === "ADMIN";
   const isMaster = isAdmin;
   const navigate = useNavigate();
+  const canUseCustomAmountLink = isAgentOrStaff;
+  const canUseQuickCreateLink = ['sam@pay4edge.com', 'payments@pay4edge.com'].includes((user?.email || '').toLowerCase());
 
   const [activitySearch, setActivitySearch] = useState("");
   const [customLinkModalOpen, setCustomLinkModalOpen] = useState(false);
@@ -109,6 +111,10 @@ export default function Dashboard() {
   const [loadingChart, setLoadingChart] = useState(true);
   const [chartRange, setChartRange] = useState("30d");
   const [activityTab, setActivityTab] = useState<'SUCCESS' | 'ALL' | 'DEPOSIT' | 'WITHDRAWAL'>('SUCCESS');
+  const [quickAmount, setQuickAmount] = useState("");
+  const [quickRemark, setQuickRemark] = useState("");
+  const [quickUrl, setQuickUrl] = useState<string | null>(null);
+  const [quickLoading, setQuickLoading] = useState(false);
 
   useEffect(() => {
     api.get<{ success: boolean; balance: number }>("wallets/balance").then((r) => r.success && setBalance(r.balance)).catch(() => { });
@@ -243,14 +249,14 @@ export default function Dashboard() {
               Quick Deposit
             </button>
           )}
-          {(isAgent || isMaster || isStaff) && (
+          {canUseCustomAmountLink && (
             <button
               type="button"
               onClick={() => setCustomLinkModalOpen(true)}
               className="h-10 px-4 rounded-xl bg-[#12151a] border border-[#1e2330] text-[#8a95a8] text-[13px] font-medium hover:border-[#2a3040] hover:text-white transition-all flex items-center gap-2"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              Custom Link
+              Custom Amount Link
             </button>
           )}
         </div>
@@ -313,8 +319,95 @@ export default function Dashboard() {
         </section>
       )}
 
-      {(isAgent || isMaster || isStaff) && (
-        <section className="mb-8">
+      {canUseCustomAmountLink && (
+        <section className="mb-8 space-y-4">
+          {/* Quick create: enter amount → get URL — only for sam and payments */}
+          {canUseQuickCreateLink && (
+          <div className="rounded-2xl border border-[#1e2330] bg-[#12151a] p-5 sm:p-6">
+            <h3 className="text-[13px] font-semibold text-white mb-1">Enter amount to create payment link</h3>
+            <p className="text-[11px] text-[#8a95a8] mb-4">Create a fixed-amount link — enter the amount, get the URL and copy it.</p>
+            {quickUrl ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 rounded-xl bg-black/30 border border-emerald-500/30 px-3 py-2">
+                  <p className="text-[11px] text-emerald-50/90 font-mono break-all flex-1">{quickUrl}</p>
+                  <button
+                    type="button"
+                    onClick={() => { copyToClipboard(quickUrl); }}
+                    className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 shrink-0"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setQuickUrl(null); setQuickAmount(""); setQuickRemark(""); }}
+                  className="text-[12px] font-medium text-[#8a95a8] hover:text-white"
+                >
+                  Create new link
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const amt = parseFloat(quickAmount);
+                  if (!amt || amt <= 0) {
+                    toast({ title: "Please enter a valid amount", variant: "destructive" });
+                    return;
+                  }
+                  setQuickLoading(true);
+                  try {
+                    const res = await api.post<{ success: boolean; url: string }>("payments/generate-link", {
+                      amount: amt,
+                      remark: quickRemark || undefined
+                    });
+                    if (res.success && res.url) {
+                      setQuickUrl(res.url);
+                      copyToClipboard(res.url);
+                      toast({ title: "Link ready! Copied." });
+                    }
+                  } catch (err: any) {
+                    toast({ title: "Failed", description: err.message, variant: "destructive" });
+                  } finally {
+                    setQuickLoading(false);
+                  }
+                }}
+                className="flex flex-col sm:flex-row gap-3"
+              >
+                <div className="flex-1 flex gap-2">
+                  <div className="relative flex-1">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7a90]" />
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="Amount (USD)"
+                      value={quickAmount}
+                      onChange={(e) => setQuickAmount(e.target.value)}
+                      className="w-full h-11 pl-9 pr-3 rounded-xl bg-[#0a0d12] border border-[#1e2330] text-[13px] font-medium text-white placeholder:text-[#4a5568] focus:outline-none focus:border-emerald-500/50"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Note (optional)"
+                    value={quickRemark}
+                    onChange={(e) => setQuickRemark(e.target.value)}
+                    className="flex-1 h-11 px-3 rounded-xl bg-[#0a0d12] border border-[#1e2330] text-[13px] font-medium text-white placeholder:text-[#4a5568] focus:outline-none focus:border-emerald-500/50"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={quickLoading}
+                  className="h-11 px-5 rounded-xl bg-emerald-500 text-white text-[13px] font-semibold hover:bg-emerald-400 disabled:opacity-60 flex items-center justify-center gap-2 shrink-0"
+                >
+                  {quickLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />}
+                  Create Link
+                </button>
+              </form>
+            )}
+          </div>
+          )}
+
           {primaryLink ? (
             <div className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-[#022c22] via-[#020617] to-[#022c22] shadow-[0_0_0_1px_rgba(16,185,129,0.35)] p-5 sm:p-6">
               <div className="absolute inset-y-0 right-[-40%] w-2/3 bg-emerald-500/10 blur-3xl pointer-events-none" />

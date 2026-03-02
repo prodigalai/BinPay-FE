@@ -56,7 +56,9 @@ export default function Withdrawals() {
   const [creating, setCreating] = useState(false);
   const [amount, setAmount] = useState("");
   const [createdLink, setCreatedLink] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'history' | 'links' | 'manual' | 'approve'>('manual');
+  const isAgent = user?.role === "AGENT";
+  const showManualTab = !isAgent;
+  const [activeTab, setActiveTab] = useState<'history' | 'links' | 'manual' | 'approve'>(isAgent ? 'approve' : 'manual');
   const [verifyingCode, setVerifyingCode] = useState<string | null>(null);
   const [manualRequests, setManualRequests] = useState<ManualRequestItem[]>([]);
   const [withdrawalLink, setWithdrawalLink] = useState<string | null>(null);
@@ -231,6 +233,10 @@ export default function Withdrawals() {
   }, [isAdmin]);
 
   useEffect(() => {
+    if (isAgent && activeTab === 'manual') setActiveTab('approve');
+  }, [isAgent, activeTab]);
+
+  useEffect(() => {
     if (canManageRequests && (activeTab === 'approve' || activeTab === 'manual')) fetchManualRequests();
   }, [canManageRequests, activeTab]);
 
@@ -376,17 +382,19 @@ export default function Withdrawals() {
 
       {/* TABS */}
       <div className="flex flex-wrap gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-2">
-        <button
-          onClick={() => setActiveTab('manual')}
-          className={cn(
-            "flex-1 min-w-[90px] py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
-            activeTab === 'manual'
-              ? "bg-primary/20 text-primary shadow-sm"
-              : "text-muted-foreground hover:text-white"
-          )}
-        >
-          Manual Payout
-        </button>
+        {showManualTab && (
+          <button
+            onClick={() => setActiveTab('manual')}
+            className={cn(
+              "flex-1 min-w-[90px] py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all duration-200",
+              activeTab === 'manual'
+                ? "bg-primary/20 text-primary shadow-sm"
+                : "text-muted-foreground hover:text-white"
+            )}
+          >
+            Manual Payout
+          </button>
+        )}
         <button
           onClick={() => setActiveTab('approve')}
           className={cn(

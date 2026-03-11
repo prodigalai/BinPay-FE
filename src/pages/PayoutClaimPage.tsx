@@ -4,15 +4,18 @@
  */
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Loader2, Mail, ShieldCheck, AlertTriangle, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { Loader2, Mail, ShieldCheck, AlertTriangle, CheckCircle2, XCircle, RefreshCw, Landmark, Send } from "lucide-react";
 import { api } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
+import { cn } from "../lib/utils";
 
 interface LinkDetails {
   code: string;
   amount: number;
   status: string;
+  provider: "PAYPAL" | "DOTS";
+  dotsLink?: string;
 }
 
 export default function PayoutClaimPage() {
@@ -26,6 +29,7 @@ export default function PayoutClaimPage() {
   const [statusReason, setStatusReason] = useState<string | null>(null); // UNCLAIMED, ONHOLD when processing
   const [paypalEmail, setPaypalEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [withdrawalMethod, setWithdrawalMethod] = useState<"Dots RTP" | "PayPal">("PayPal");
   const processingStartedAt = useRef<number | null>(null);
   const [elapsedSec, setElapsedSec] = useState(0);
 
@@ -35,12 +39,14 @@ export default function PayoutClaimPage() {
       return;
     }
     api
-      .publicGet<{ success: boolean; code?: string; amount?: number; status?: string; message?: string }>(
+      .publicGet<{ success: boolean; code?: string; amount?: number; status?: string; provider?: string; dotsLink?: string; message?: string }>(
         `payout/${encodeURIComponent(code.toUpperCase())}`
       )
       .then((res) => {
         if (res.success && res.code) {
-          setDetails({ code: res.code, amount: res.amount ?? 0, status: res.status ?? "unused" });
+          const provider = (res.provider || "PAYPAL").toUpperCase() === "DOTS" ? "DOTS" : "PAYPAL";
+          setDetails({ code: res.code, amount: res.amount ?? 0, status: res.status ?? "unused", provider, dotsLink: res.dotsLink });
+          setWithdrawalMethod(provider === "DOTS" ? "Dots RTP" : "PayPal");
         } else {
           setError((res as { message?: string }).message || "Invalid or expired link");
         }
@@ -106,6 +112,13 @@ export default function PayoutClaimPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!details || !code) return;
+    if (details.provider === "DOTS") {
+      // No submit for Dots payout-links; user should continue on the Dots-hosted page.
+      if (details.dotsLink) {
+        window.open(details.dotsLink, "_blank");
+      }
+      return;
+    }
     const email = paypalEmail.trim();
     if (!email) {
       toast({ title: "Enter your PayPal email", variant: "destructive" });
@@ -167,7 +180,76 @@ export default function PayoutClaimPage() {
 
   const CHECKING_MAX_SEC = 10;
 
-  if (done) {
+  // Dots payout-link UI: no email form or polling, just CTA to continue on Dots.
+  if (details.provider === "DOTS") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0d12] text-white p-4">
+        <div className="w-full max-w-md mx-auto">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1.5">
+                NestaPay payout link
+              </p>
+              <h1 className="text-2xl font-black text-white tracking-tight">Claim your payout</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                This payout will be completed using{" "}
+                <span className="font-semibold text-white">Dots RTP</span>. You&apos;ll finish the process on a secure Dots page.
+              </p>
+              <div className="mt-4 rounded-xl bg-white/[0.04] border border-white/10 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-1">
+                    Amount
+                  </p>
+                  <p className="text-xl font-black text-white tabular-nums">
+                    ${Number(details.amount || 0).toFixed(2)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest mb-1">
+                    Method
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/40 text-xs font-black uppercase tracking-widest">
+                    <Landmark className="w-3.5 h-3.5" />
+                    Dots RTP
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-muted-foreground">
+                When you continue, we&apos;ll open a{" "}
+                <span className="font-semibold text-white">Dots</span> payout page where you can complete verification
+                and choose how you want to receive the money.
+              </p>
+              <Button
+                type="button"
+                className="w-full min-h-[48px] font-black uppercase tracking-wider"
+                onClick={() => {
+                  if (details.dotsLink) {
+                    window.open(details.dotsLink, "_blank");
+                  } else {
+                    toast({
+                      title: "Link not ready",
+                      description: "Please ask the sender to regenerate the payout link.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              >
+                Continue to secure payout
+              </Button>
+              <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                You may be asked for additional verification on Dots depending on your country and bank.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (done && details?.provider === "PAYPAL") {
     const isCompleted = payoutStatus === "completed";
     const isFailed = payoutStatus === "failed";
     const isProcessing = !isCompleted && !isFailed;
@@ -272,6 +354,8 @@ export default function PayoutClaimPage() {
     );
   }
 
+  // For Dots payout-links we don't submit anything from this page; we just show the Dots CTA.
+
   return (
     <div className="min-h-screen text-white p-4 sm:p-6 py-8 relative overflow-x-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -297,6 +381,35 @@ export default function PayoutClaimPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1.5">
+                Withdrawal method
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div
+                  className={cn(
+                    "flex items-center gap-2 h-9 rounded-xl border px-3 text-[10px] font-black uppercase tracking-widest",
+                    "bg-primary/20 border-primary text-primary"
+                  )}
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>PayPal</span>
+                </div>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 h-9 rounded-xl border px-3 text-[10px] font-black uppercase tracking-widest bg-white/5 border-white/10 text-white/30 cursor-not-allowed"
+                  onClick={() =>
+                    toast({
+                      title: "PayPal only",
+                      description: "This payout link only supports PayPal. Use a withdrawal request link for Dots RTP.",
+                    })
+                  }
+                >
+                  <Landmark className="w-3.5 h-3.5" />
+                  <span>Dots RTP</span>
+                </button>
+              </div>
+            </div>
             <p className="text-[10px] text-muted-foreground border-l-2 border-primary/40 pl-3 py-1">
               We don’t have your account details. Enter <strong className="text-white">your</strong> PayPal email below so we can send the money to you.
             </p>

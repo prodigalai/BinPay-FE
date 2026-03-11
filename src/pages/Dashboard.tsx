@@ -135,7 +135,15 @@ export default function Dashboard() {
       if (isStaff) {
         api.get<{ success: boolean; summary: StaffStats }>("dashboard/staff-links")
           .then((r) => {
-            if (r.success) setStaffStats(r.summary);
+            if (r.success && r.summary) {
+              const s = r.summary as unknown as { totalLinksCreated: number; totalPayments: number; totalRevenue: number; totalPending: number };
+              setStaffStats({
+                totalLinksCreated: s.totalLinksCreated ?? 0,
+                totalGeneratedAmount: s.totalRevenue ?? 0,
+                totalReceivedAmount: s.totalRevenue ?? 0,
+                totalPendingAmount: s.totalPending ?? 0,
+              });
+            }
           })
           .catch(() => { })
           .finally(() => setLoadingStats(false));
@@ -286,10 +294,10 @@ export default function Dashboard() {
                 </>
               ) : dashboardStats && (
                 <>
-                  <StatCard title="Deposits" value={`$${dashboardStats.totalDeposits.toLocaleString()}`} icon={TrendingUp} change="+12.5% this month" changeType="positive" description="Total amount received from player payments" />
+                  <StatCard title="Deposits" value={`$${dashboardStats.totalDeposits.toLocaleString()}`} icon={TrendingUp} description="Total amount received from player payments" />
                   {isAdmin && <StatCard title="Total Balance" value={balance !== null ? `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "—"} icon={Wallet} description="Your current wallet balance (use for payouts)" />}
                   {isAdmin && <StatCard title="Agents" value={dashboardStats.totalAgents?.toLocaleString() || "0"} icon={Users} description="Number of agent accounts" />}
-                  {isAdmin && <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} change="-2.4% this month" changeType="negative" description="Total sent out via payout links" />}
+                  {isAdmin && <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} description="Total sent out via payout links" />}
                   {!isAdmin && (
                     <>
                       <StatCard title="Withdrawals" value={`$${dashboardStats.totalWithdrawals.toLocaleString()}`} icon={TrendingDown} />
@@ -309,7 +317,7 @@ export default function Dashboard() {
                           changeType="neutral"
                         />
                       )}
-                      <StatCard title="Net Volume" value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} icon={Activity} change="↑ 8.2%" changeType="positive" />
+                      <StatCard title="Net Volume" value={`$${(dashboardStats.totalDeposits - dashboardStats.totalWithdrawals).toLocaleString()}`} icon={Activity} />
                     </>
                   )}
                 </>

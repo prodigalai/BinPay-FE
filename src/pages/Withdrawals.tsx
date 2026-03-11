@@ -12,6 +12,7 @@ interface PayoutLinkItem {
   code: string;
   amount: number;
   status: string;
+  provider?: string;
   link: string;
   createdAt: string;
 }
@@ -56,6 +57,7 @@ export default function Withdrawals() {
   const [creating, setCreating] = useState(false);
   const [amount, setAmount] = useState("");
   const [createdLink, setCreatedLink] = useState<string | null>(null);
+  const [payoutProvider, setPayoutProvider] = useState<"PAYPAL" | "DOTS">("PAYPAL");
   const isAgent = user?.role === "AGENT";
   const showManualTab = !isAgent;
   const [activeTab, setActiveTab] = useState<'history' | 'links' | 'manual' | 'approve'>(isAgent ? 'approve' : 'manual');
@@ -246,6 +248,7 @@ export default function Withdrawals() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const num = parseFloat(amount);
     if (isNaN(num) || num < 0.01) {
       toast({ title: "Enter amount (min $0.01)", variant: "destructive" });
@@ -261,7 +264,7 @@ export default function Withdrawals() {
     try {
       const res = await api.post<{ success: boolean; link?: string; code?: string; amount?: number; message?: string }>(
         "admin/create-link",
-        { amount: num }
+        { amount: num, provider: payoutProvider }
       );
       if (res.success && res.link) {
         setCreatedLink(res.link);
@@ -332,7 +335,10 @@ export default function Withdrawals() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase italic">Withdrawals</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Create payout links. Send the link — user opens it and enters their PayPal email.</p>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            Two link types: <span className="font-semibold text-white">Withdrawal request links</span> (Dots RTP / PayPal, admin approval)
+            and <span className="font-semibold text-white">Payout links</span> (instant send via PayPal or Dots RTP).
+          </p>
         </div>
         <button
           type="button"
@@ -353,13 +359,16 @@ export default function Withdrawals() {
         <p className="text-[10px] text-muted-foreground mt-1">Total Balance. Deducted only when payout is sent to the receiver; refunded if payout fails.</p>
       </div>
 
-      {/* Withdrawal request link — above tabs so it's always visible */}
+      {/* Withdrawal request link — Dots RTP + PayPal (DTO) */}
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 sm:p-8">
         <div className="flex items-center gap-2 mb-4">
           <UserPlus className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold text-white">Withdrawal request link</h2>
+          <h2 className="text-lg font-bold text-white">Withdrawal request link (Dots RTP / PayPal)</h2>
         </div>
-        <p className="text-xs text-muted-foreground mb-4">Generate a time-limited link (1 hour). Multiple users can submit payout requests via this link before it expires. After expiry, generate a new link.</p>
+        <p className="text-xs text-muted-foreground mb-4">
+          Generate a time-limited link (1 hour). Users can choose <span className="font-semibold text-white">Dots RTP</span> or <span className="font-semibold text-white">PayPal</span>
+          and submit payout requests. You approve in the dashboard; payouts are then sent via the selected rail.
+        </p>
         <Button type="button" onClick={handleGenerateWithdrawalLink} disabled={generatingLink} className="gap-2">
           {generatingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           Generate link
@@ -433,32 +442,69 @@ export default function Withdrawals() {
       {/* TAB CONTENT */}
       {activeTab === 'manual' ? (
         <div className="space-y-6">
-          {/* Create payout link — inside Manual Payout tab */}
+          {/* Create payout / request link — inside Manual Payout tab */}
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 sm:p-8">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <LinkIcon className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Create payout link</h2>
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Share the link — user opens it and enters their own PayPal email.</p>
+                <h2 className="text-lg font-bold text-white tracking-tight">Create link</h2>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Choose provider: <span className="text-white">Dots RTP</span> or{" "}
+                  <span className="text-white">PayPal</span> (both create payout links).
+                </p>
               </div>
             </div>
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => setPayoutProvider("DOTS")}
+                className={cn(
+                  "flex-1 h-9 rounded-xl border text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all",
+                  payoutProvider === "DOTS" ? "bg-primary/20 border-primary text-primary" : "bg-white/5 border-white/10 text-muted-foreground hover:text-white"
+                )}
+              >
+                Dots RTP
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayoutProvider("PAYPAL")}
+                className={cn(
+                  "flex-1 h-9 rounded-xl border text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all",
+                  payoutProvider === "PAYPAL" ? "bg-primary/20 border-primary text-primary" : "bg-white/5 border-white/10 text-muted-foreground hover:text-white"
+                )}
+              >
+                PayPal
+              </button>
+            </div>
             <form onSubmit={handleCreate} className="flex flex-wrap items-end gap-4">
-              <div className="min-w-[160px] flex-1">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Amount (USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <Button type="submit" disabled={creating || (balance ?? 0) < 0.01} className="h-12 px-6">
-                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-2" /> Create link</>}
+              {payoutProvider && (
+                <div className="min-w-[160px] flex-1">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Amount (USD)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+              )}
+              <Button
+                type="submit"
+                disabled={creating || (balance ?? 0) < 0.01}
+                className="h-12 px-6"
+              >
+                {creating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" /> Create payout link
+                  </>
+                )}
               </Button>
             </form>
             {createdLink && (

@@ -4,10 +4,52 @@
  */
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Loader2, Mail, DollarSign, User, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, DollarSign, User, AlertTriangle, CheckCircle2, Phone, Landmark, Send } from "lucide-react";
 import { api } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
+import { cn } from "../lib/utils";
+
+const COUNTRY_OPTIONS = [
+  { value: "+1", label: "United States / Canada", flag: "🇺🇸" },
+  { value: "+44", label: "United Kingdom", flag: "🇬🇧" },
+  { value: "+91", label: "India", flag: "🇮🇳" },
+  { value: "+971", label: "United Arab Emirates", flag: "🇦🇪" },
+  { value: "+61", label: "Australia", flag: "🇦🇺" },
+  { value: "+49", label: "Germany", flag: "🇩🇪" },
+  { value: "+33", label: "France", flag: "🇫🇷" },
+  { value: "+39", label: "Italy", flag: "🇮🇹" },
+  { value: "+34", label: "Spain", flag: "🇪🇸" },
+  { value: "+81", label: "Japan", flag: "🇯🇵" },
+  { value: "+82", label: "South Korea", flag: "🇰🇷" },
+  { value: "+65", label: "Singapore", flag: "🇸🇬" },
+  { value: "+62", label: "Indonesia", flag: "🇮🇩" },
+  { value: "+60", label: "Malaysia", flag: "🇲🇾" },
+  { value: "+63", label: "Philippines", flag: "🇵🇭" },
+  { value: "+92", label: "Pakistan", flag: "🇵🇰" },
+  { value: "+880", label: "Bangladesh", flag: "🇧🇩" },
+  { value: "+234", label: "Nigeria", flag: "🇳🇬" },
+  { value: "+254", label: "Kenya", flag: "🇰🇪" },
+  { value: "+27", label: "South Africa", flag: "🇿🇦" },
+  { value: "+55", label: "Brazil", flag: "🇧🇷" },
+  { value: "+52", label: "Mexico", flag: "🇲🇽" },
+  { value: "+57", label: "Colombia", flag: "🇨🇴" },
+  { value: "+54", label: "Argentina", flag: "🇦🇷" },
+  { value: "+90", label: "Turkey", flag: "🇹🇷" },
+  { value: "+966", label: "Saudi Arabia", flag: "🇸🇦" },
+  { value: "+974", label: "Qatar", flag: "🇶🇦" },
+  { value: "+968", label: "Oman", flag: "🇴🇲" },
+  { value: "+852", label: "Hong Kong", flag: "🇭🇰" },
+  { value: "+853", label: "Macau", flag: "🇲🇴" },
+  { value: "+86", label: "China", flag: "🇨🇳" },
+  { value: "+41", label: "Switzerland", flag: "🇨🇭" },
+  { value: "+31", label: "Netherlands", flag: "🇳🇱" },
+  { value: "+46", label: "Sweden", flag: "🇸🇪" },
+  { value: "+47", label: "Norway", flag: "🇳🇴" },
+  { value: "+48", label: "Poland", flag: "🇵🇱" },
+  { value: "+420", label: "Czech Republic", flag: "🇨🇿" },
+  { value: "+351", label: "Portugal", flag: "🇵🇹" },
+];
 
 export default function WithdrawRequestPage() {
   const { token } = useParams<{ token: string }>();
@@ -18,6 +60,9 @@ export default function WithdrawRequestPage() {
   const [submitted, setSubmitted] = useState(false);
   const [amount, setAmount] = useState("");
   const [paypalEmail, setPaypalEmail] = useState("");
+  const [localPhone, setLocalPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [withdrawalMethod, setWithdrawalMethod] = useState<"Dots RTP" | "PayPal">("Dots RTP");
   const [name, setName] = useState("");
 
   useEffect(() => {
@@ -46,16 +91,36 @@ export default function WithdrawRequestPage() {
       toast({ title: "Enter a valid amount (min $0.01)", variant: "destructive" });
       return;
     }
+    const methodVal = withdrawalMethod === "PayPal" ? "paypal" : "dots";
     const email = paypalEmail.trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast({ title: "Enter a valid PayPal email", variant: "destructive" });
-      return;
+    const phoneTrimmed = localPhone.trim();
+    if (withdrawalMethod === "PayPal") {
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast({ title: "Enter a valid PayPal email", variant: "destructive" });
+        return;
+      }
+    } else {
+      const digits = (countryCode + phoneTrimmed).replace(/\D/g, "");
+      if (!digits || digits.length < 8) {
+        toast({ title: "Enter a valid phone (country code + number)", variant: "destructive" });
+        return;
+      }
     }
     setSubmitting(true);
     try {
+      const payload: any = {
+        amount: amt,
+        name: name.trim() || "Requestor",
+        withdrawalMethod: methodVal,
+      };
+      if (withdrawalMethod === "PayPal") {
+        payload.paypalEmail = email;
+      } else {
+        payload.phone = `${countryCode}${phoneTrimmed}`;
+      }
       const res = await api.publicPost<{ success: boolean; message?: string }>(
         `withdraw-request/${encodeURIComponent(token!.toUpperCase())}`,
-        { amount: amt, paypalEmail: email, name: name.trim() || "Requestor" }
+        payload
       );
       if (res.success) {
         setSubmitted(true);
@@ -121,6 +186,32 @@ export default function WithdrawRequestPage() {
           </div>
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                Withdrawal method
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: "Dots RTP" as const, icon: Landmark, label: "Dots RTP (default)" },
+                  { id: "PayPal" as const, icon: Send, label: "PayPal" },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setWithdrawalMethod(m.id)}
+                    className={cn(
+                      "flex items-center gap-2 h-10 rounded-xl border px-3 text-[11px] font-bold uppercase tracking-wider transition-all",
+                      withdrawalMethod === m.id
+                        ? "bg-primary/20 border-primary text-primary"
+                        : "bg-white/5 border-white/10 text-white/50 hover:border-white/20"
+                    )}
+                  >
+                    <m.icon className="w-3.5 h-3.5" />
+                    <span>{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <User className="w-3.5 h-3.5" /> Your name (optional)
               </label>
@@ -147,19 +238,48 @@ export default function WithdrawRequestPage() {
                 required
               />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <Mail className="w-3.5 h-3.5" /> PayPal email (where you want to receive)
-              </label>
-              <input
-                type="email"
-                placeholder="your@paypal.email"
-                value={paypalEmail}
-                onChange={(e) => setPaypalEmail(e.target.value)}
-                className="w-full min-h-[44px] px-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
-                required
-              />
-            </div>
+            {withdrawalMethod === "PayPal" ? (
+              <div>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                  <Mail className="w-3.5 h-3.5" /> PayPal email (where you want to receive)
+                </label>
+                <input
+                  type="email"
+                  placeholder="your@paypal.email"
+                  value={paypalEmail}
+                  onChange={(e) => setPaypalEmail(e.target.value)}
+                  className="w-full min-h-[44px] px-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                    <Phone className="w-3.5 h-3.5" /> Country code
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-40 min-h-[44px] px-2 rounded-xl bg-white/[0.03] border border-white/10 text-white text-[12px] focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    >
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.flag} {c.value} ({c.label})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder="5551234567"
+                      value={localPhone}
+                      onChange={(e) => setLocalPhone(e.target.value)}
+                      className="flex-1 min-h-[44px] px-3 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
             <Button type="submit" disabled={submitting} className="w-full min-h-[48px]">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit request"}
             </Button>

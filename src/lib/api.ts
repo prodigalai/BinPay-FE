@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string;
   role: "ADMIN" | "SUPPORT" | "STAFF" | "PLAYER" | "AGENT";
   location?: string;
+  balance?: number;
 }
 
 export interface LoginResponse {
@@ -179,7 +180,8 @@ async function request<T>(
   const data = await res.json().catch(() => ({}));
 
   const isLoginRequest = pathNorm === "auth/login";
-  if (res.status === 401 && !isLoginRequest) {
+  const isMeRequest = pathNorm === "auth/me";
+  if (res.status === 401 && !isLoginRequest && !isMeRequest) {
     localStorage.removeItem("pay4edge_token");
     localStorage.removeItem("pay4edge_user");
     window.location.href = "/login";

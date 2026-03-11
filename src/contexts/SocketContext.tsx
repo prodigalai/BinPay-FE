@@ -9,7 +9,8 @@ interface SocketContextType {
 
 const SocketContext = createContext<SocketContextType>({ socket: null });
 
-const API_URL = import.meta.env.VITE_API_URL.replace('/api/v1', '');
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1").replace(/\/api\/v1\/?$/, "") || "http://localhost:5000";
+const API_URL = API_BASE;
 
 const NOTIFICATION_DEBOUNCE_MS = 2500;
 

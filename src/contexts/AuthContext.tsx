@@ -6,6 +6,7 @@ export type UserRole = "ADMIN" | "STAFF" | "SUPPORT" | "PLAYER" | "AGENT";
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  sessionChecked: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => void;
@@ -32,10 +33,30 @@ function loadStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(loadStoredUser);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
     if (user) localStorage.setItem("pay4edge_user", JSON.stringify(user));
   }, [user]);
+
+  // Restore session from JWT on load — dashboard gets real user/role/balance from API
+  useEffect(() => {
+    const token = localStorage.getItem("pay4edge_token");
+    if (!token) {
+      setSessionChecked(true);
+      return;
+    }
+    api.get<{ success: boolean; user: AuthUser }>("auth/me")
+      .then((data) => {
+        if (data.success && data.user) setUser(data.user);
+      })
+      .catch(() => {
+        localStorage.removeItem("pay4edge_token");
+        localStorage.removeItem("pay4edge_user");
+        setUser(null);
+      })
+      .finally(() => setSessionChecked(true));
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await api.post<LoginResponse>("auth/login", { email, password });
@@ -76,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        sessionChecked,
         login,
         register,
         logout,

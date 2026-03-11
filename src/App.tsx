@@ -36,13 +36,15 @@ import WithdrawRequestPage from "./pages/WithdrawRequestPage";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, sessionChecked } = useAuth();
+  if (!sessionChecked) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 function RoleRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: UserRole[] }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, sessionChecked } = useAuth();
+  if (!sessionChecked) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user && !allowedRoles.includes(user.role as UserRole)) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
